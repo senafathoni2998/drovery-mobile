@@ -5,15 +5,20 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#00B4D8',
-        tabBarInactiveTintColor: '#6C757D',
+        tabBarActiveTintColor: '#00C2A8',
+        tabBarInactiveTintColor: '#9E9E9E',
         tabBarStyle: {
           backgroundColor: '#fff',
           borderTopWidth: 1,
-          borderTopColor: '#DEE2E6',
+          borderTopColor: '#F0F0F0',
           paddingBottom: 8,
           paddingTop: 8,
           height: 60,
+          elevation: 4,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 4,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -34,9 +39,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="orders"
         options={{
-          title: 'Orders',
+          title: 'Delivery',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="receipt-long" size={size} color={color} />
+            <MaterialIcons name="inventory-2" size={size} color={color} />
           ),
         }}
       />
