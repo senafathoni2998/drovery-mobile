@@ -1,65 +1,66 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
+import Animated, {
+  FadeIn,
+  FadeInDown,
+} from "react-native-reanimated";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { authService, SignupCredentials } from "../services/authService";
+
+// Shared animation configuration - only for parent components
+const heroAnim = FadeIn.duration(500).springify();
+const formCardAnim = FadeInDown.delay(100).duration(500).springify();
+const linkAnim = FadeInDown.delay(200).duration(500).springify();
+
+type FormErrors = {
+  name?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+};
 
 export default function SignupScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
 
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  function validate(): boolean {
+    const next: FormErrors = {};
+    if (!name) next.name = "Name is required";
+    else if (name.length < 2) next.name = "Min. 2 characters";
+    if (!email) next.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) next.email = "Enter a valid email";
+    if (!password) next.password = "Password is required";
+    else if (password.length < 6) next.password = "Min. 6 characters";
+    if (!confirmPassword) next.confirmPassword = "Please confirm your password";
+    else if (password !== confirmPassword) next.confirmPassword = "Passwords do not match";
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  }
 
-  const handleSignup = async () => {
-    if (
-      !name.trim() ||
-      !email.trim() ||
-      !password.trim() ||
-      !confirmPassword.trim()
-    ) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
-
-    if (name.trim().length < 2) {
-      Alert.alert("Error", "Name must be at least 2 characters");
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      Alert.alert("Error", "Please enter a valid email address");
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
-      return;
-    }
+  async function onSubmit() {
+    if (!validate()) return;
 
     setLoading(true);
 
@@ -88,314 +89,439 @@ export default function SignupScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
-    <View style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.keyboardContainer}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <KeyboardAvoidingView
+      style={[styles.container, { paddingTop: insets.top }]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20 }]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header */}
+        {/* Hero Card */}
+        <Animated.View entering={heroAnim} style={styles.heroContainer}>
           <LinearGradient
-            colors={["#00B4D8", "#00E5FF"]}
-            style={styles.header}
+            colors={["#2DD4BF", "#22D3EE", "#3B82F6"]}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroCard}
           >
-            <View style={styles.headerContent}>
-              <View style={styles.logoContainer}>
-                <View style={styles.logo}>
-                  <Text style={styles.logoText}>D</Text>
-                </View>
+            <View style={styles.heroContent}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="person-add" size={28} color="#fff" />
               </View>
-              <View style={styles.headerTextContainer}>
-                <Text style={styles.headerTitle}>Create Account</Text>
-                <Text style={styles.headerSubtitle}>
-                  Sign up to get started
-                </Text>
+              <View>
+                <Text style={styles.heroTitle}>Create account</Text>
+                <Text style={styles.heroSubtitle}>Sign up to get started</Text>
               </View>
             </View>
+            <View style={styles.heroBlur} />
           </LinearGradient>
+        </Animated.View>
 
-          {/* Form Card */}
-          <View style={styles.formCard}>
-            {/* Name Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Full Name</Text>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputIcon}>👤</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your full name"
-                  placeholderTextColor="#6C757D"
-                  value={name}
-                  onChangeText={setName}
-                  autoCapitalize="words"
-                  editable={!loading}
-                />
-              </View>
-            </View>
-
-            {/* Email Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputIcon}>📧</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="You@example.com"
-                  placeholderTextColor="#6C757D"
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  editable={!loading}
-                />
-              </View>
-            </View>
-
-            {/* Password Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Password</Text>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputIcon}>🔒</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="••••••"
-                  placeholderTextColor="#6C757D"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  editable={!loading}
-                />
-              </View>
-            </View>
-
-            {/* Confirm Password Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Confirm Password</Text>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputIcon}>🔒</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="••••••"
-                  placeholderTextColor="#6C757D"
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  editable={!loading}
-                />
-              </View>
-            </View>
-
-            {/* Create Account Button */}
-            <TouchableOpacity
+        {/* Form Card */}
+        <Animated.View
+          entering={formCardAnim}
+          style={styles.formCard}
+        >
+          {/* Name Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Full Name</Text>
+            <View
               style={[
-                styles.signupButton,
-                loading && styles.signupButtonDisabled,
+                styles.inputWrapper,
+                errors.name && styles.inputWrapperError,
               ]}
-              onPress={handleSignup}
-              disabled={loading}
-              activeOpacity={0.8}
             >
-              <LinearGradient
-                colors={["#00B4D8", "#00E5FF"]}
-                style={styles.signupButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <Text style={styles.signupButtonText}>Create Account</Text>
-                    <Text style={styles.signupButtonIcon}>→</Text>
-                  </>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {/* Sign In Link */}
-            <View style={styles.signInContainer}>
-              <Text style={styles.signInText}>Already have an account? </Text>
-              <TouchableOpacity
-                onPress={() => router.replace("/login")}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.signInLink}>Sign In</Text>
-              </TouchableOpacity>
+              <MaterialIcons name="person" size={20} color="#94A3B8" />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your full name"
+                placeholderTextColor="#94A3B8"
+                value={name}
+                onChangeText={(text) => {
+                  setName(text);
+                  setErrors((prev) => ({ ...prev, name: undefined }));
+                }}
+                autoCapitalize="words"
+                editable={!loading}
+              />
             </View>
+            {errors.name && (
+              <Text style={styles.errorText}>{errors.name}</Text>
+            )}
           </View>
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              By continuing, you agree to our{" "}
-              <Text style={styles.footerLink}>Terms</Text> and{" "}
-              <Text style={styles.footerLink}>Privacy Policy</Text>.
-            </Text>
+          {/* Email Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email</Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                errors.email && styles.inputWrapperError,
+              ]}
+            >
+              <MaterialIcons name="email" size={20} color="#94A3B8" />
+              <TextInput
+                style={styles.input}
+                placeholder="you@example.com"
+                placeholderTextColor="#94A3B8"
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  setErrors((prev) => ({ ...prev, email: undefined }));
+                }}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                editable={!loading}
+              />
+            </View>
+            {errors.email && (
+              <Text style={styles.errorText}>{errors.email}</Text>
+            )}
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
+
+          {/* Password Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Password</Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                errors.password && styles.inputWrapperError,
+              ]}
+            >
+              <MaterialIcons name="lock" size={20} color="#94A3B8" />
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor="#94A3B8"
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                editable={!loading}
+              />
+              <Pressable
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeButton}
+                hitSlop={8}
+              >
+                <Ionicons
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={20}
+                  color="#64748B"
+                />
+              </Pressable>
+            </View>
+            {errors.password && (
+              <Text style={styles.errorText}>{errors.password}</Text>
+            )}
+          </View>
+
+          {/* Confirm Password Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Confirm Password</Text>
+            <View
+              style={[
+                styles.inputWrapper,
+                errors.confirmPassword && styles.inputWrapperError,
+              ]}
+            >
+              <MaterialIcons name="lock-outline" size={20} color="#94A3B8" />
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor="#94A3B8"
+                value={confirmPassword}
+                onChangeText={(text) => {
+                  setConfirmPassword(text);
+                  setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                }}
+                secureTextEntry={!showConfirmPassword}
+                autoCapitalize="none"
+                editable={!loading}
+              />
+              <Pressable
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={styles.eyeButton}
+                hitSlop={8}
+              >
+                <Ionicons
+                  name={showConfirmPassword ? "eye-off" : "eye"}
+                  size={20}
+                  color="#64748B"
+                />
+              </Pressable>
+            </View>
+            {errors.confirmPassword && (
+              <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+            )}
+          </View>
+
+          {/* Submit Button */}
+          <Pressable
+            onPress={onSubmit}
+            disabled={loading}
+            style={styles.submitButton}
+          >
+            <LinearGradient
+              colors={["#14B8A6", "#06B6D4"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.submitGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="person-add" size={18} color="#fff" />
+                  <Text style={styles.submitText}>Create Account</Text>
+                </>
+              )}
+            </LinearGradient>
+          </Pressable>
+
+          {/* Divider */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Social Buttons */}
+          <View style={styles.socialButtons}>
+            <Pressable style={styles.socialButton}>
+              <Ionicons name="logo-google" size={18} color="#64748B" />
+              <Text style={styles.socialButtonText}>Google</Text>
+            </Pressable>
+            <Pressable style={styles.socialButton}>
+              <Ionicons name="logo-apple" size={18} color="#64748B" />
+              <Text style={styles.socialButtonText}>Apple</Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+
+        {/* Sign In Link */}
+        <Animated.View
+          entering={linkAnim}
+          style={styles.signinContainer}
+        >
+          <Text style={styles.signinText}>Already have an account? </Text>
+          <Pressable onPress={() => router.replace("/login")}>
+            <Text style={styles.signinLink}>Sign In</Text>
+          </Pressable>
+        </Animated.View>
+
+        {/* Footer */}
+        <Text style={styles.footerText}>
+          By continuing, you agree to our{" "}
+          <Text style={styles.footerLink}>Terms</Text> and{" "}
+          <Text style={styles.footerLink}>Privacy Policy</Text>.
+        </Text>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
-  },
-  keyboardContainer: {
-    flex: 1,
+    backgroundColor: "#F8FAFC",
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 20,
     justifyContent: "center",
+    padding: 16,
+    paddingBottom: 32,
   },
-  header: {
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    paddingTop: 32,
-    paddingBottom: 24,
-    paddingHorizontal: 32,
-  },
-  headerContent: {
-    alignItems: "center",
-  },
-  logoContainer: {
+  // Hero Card
+  heroContainer: {
     marginBottom: 16,
   },
-  logo: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#fff",
-  },
-  logoText: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#fff",
-  },
-  headerTextContainer: {
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#fff",
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    fontWeight: "400",
-    color: "rgba(255, 255, 255, 0.9)",
-  },
-  formCard: {
-    backgroundColor: "#fff",
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    paddingTop: 24,
-    paddingBottom: 32,
-    paddingHorizontal: 32,
+  heroCard: {
+    borderRadius: 24,
+    padding: 24,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+    overflow: "hidden",
   },
-  inputContainer: {
-    marginBottom: 20,
+  heroContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  heroTitle: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#fff",
+    letterSpacing: -0.5,
+  },
+  heroSubtitle: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.9)",
+    marginTop: 2,
+  },
+  heroBlur: {
+    position: "absolute",
+    right: -48,
+    top: -48,
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+  },
+  // Form Card
+  formCard: {
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  inputGroup: {
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
-    fontWeight: "400",
-    color: "#212529",
+    fontWeight: "500",
+    color: "#334155",
     marginBottom: 8,
     marginLeft: 4,
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#DEE2E6",
-    borderRadius: 8,
+    borderColor: "#E2E8F0",
+    borderRadius: 16,
     paddingHorizontal: 12,
-    height: 50,
+    paddingVertical: 10,
+    gap: 8,
   },
-  inputIcon: {
-    fontSize: 20,
-    marginRight: 12,
+  inputWrapperError: {
+    borderColor: "#FB7185",
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: "#212529",
+    color: "#0F172A",
   },
-  signupButton: {
-    height: 54,
-    borderRadius: 12,
+  eyeButton: {
+    padding: 4,
+  },
+  errorText: {
+    fontSize: 12,
+    color: "#E11D48",
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  // Submit Button
+  submitButton: {
+    height: 48,
+    borderRadius: 16,
     overflow: "hidden",
-    marginBottom: 24,
+    marginTop: 8,
+    marginBottom: 16,
   },
-  signupButtonDisabled: {
-    opacity: 0.6,
-  },
-  signupButtonGradient: {
+  submitGradient: {
     flex: 1,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     gap: 8,
   },
-  signupButtonText: {
-    fontSize: 18,
-    fontWeight: "700",
+  submitText: {
+    fontSize: 16,
+    fontWeight: "600",
     color: "#fff",
   },
-  signupButtonIcon: {
-    fontSize: 20,
-    color: "#fff",
-    fontWeight: "700",
+  // Divider
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 8,
   },
-  signInContainer: {
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#E2E8F0",
+  },
+  dividerText: {
+    paddingHorizontal: 12,
+    fontSize: 12,
+    color: "#94A3B8",
+  },
+  // Social Buttons
+  socialButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  socialButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    backgroundColor: "#fff",
+  },
+  socialButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#475569",
+  },
+  // Sign In
+  signinContainer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    marginTop: 20,
   },
-  signInText: {
+  signinText: {
     fontSize: 14,
-    color: "#6C757D",
+    color: "#475569",
   },
-  signInLink: {
+  signinLink: {
     fontSize: 14,
-    color: "#00B4D8",
-    fontWeight: "500",
+    fontWeight: "600",
+    color: "#0D9488",
   },
-  footer: {
-    marginTop: 24,
-    paddingHorizontal: 20,
-  },
+  // Footer
   footerText: {
     fontSize: 12,
-    color: "#6C757D",
+    color: "#94A3B8",
     textAlign: "center",
+    marginTop: 24,
   },
   footerLink: {
-    color: "#00B4D8",
+    textDecorationLine: "underline",
   },
 });
