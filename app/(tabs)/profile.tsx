@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  BackHandler,
 } from "react-native";
 import Animated, {
   FadeIn,
@@ -56,6 +57,16 @@ export default function ProfileScreen() {
   const router = useRouter();
   const userName = "Sena";
   const userEmail = "sena@drovery.com";
+
+  // Handle hardware back button - exit app on profile screen
+  React.useEffect(() => {
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      BackHandler.exitApp();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   const handleLogout = () => {
     authService.logout();
