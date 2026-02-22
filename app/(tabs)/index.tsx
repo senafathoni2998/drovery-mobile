@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  BackHandler,
 } from "react-native";
 import Animated, {
   FadeIn,
@@ -39,6 +40,16 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const userName = "Sena";
+
+  // Handle hardware back button - exit app on home screen (root tab)
+  React.useEffect(() => {
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      BackHandler.exitApp();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   const quickActions = [
     {
