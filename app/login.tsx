@@ -11,6 +11,7 @@ import {
   Text,
   TextInput,
   View,
+  BackHandler,
 } from "react-native";
 import Animated, {
   FadeIn,
@@ -18,6 +19,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as SecureStore from "expo-secure-store";
 
 // Shared animation configuration - only for parent components
 const heroAnim = FadeIn.duration(500).springify();
@@ -38,6 +40,16 @@ export default function LoginScreen() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  // Handle hardware back button - exit app on login screen
+  React.useEffect(() => {
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      BackHandler.exitApp();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   function validate(): boolean {
     const next: FormErrors = {};
