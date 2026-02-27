@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors, spacing, borderRadius, commonStyles } from "../../../../../styles/common";
+import { colors, spacing, borderRadius, commonStyles } from "@/styles/common";
 
 interface HeaderSectionProps {
   userName: string;
