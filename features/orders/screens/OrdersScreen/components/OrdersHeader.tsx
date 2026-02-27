@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, spacing, borderRadius, commonStyles } from "../../../../../styles/common";
+import { colors, spacing, borderRadius, commonStyles } from "@/styles/common";
 
 interface OrdersHeaderProps {
   query: string;
