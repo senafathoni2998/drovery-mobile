@@ -3,8 +3,8 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { spacing, borderRadius, colors } from "../../../../../styles/common";
-import { cardWithShadow } from "../../../../../styles/common";
+import { spacing, borderRadius, colors } from "@/styles/common";
+import { cardWithShadow } from "@/styles/common";
 import type { Delivery } from "../HomeScreen.types";
 
 interface ActiveDeliveriesProps {
