@@ -5,7 +5,7 @@ import { ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BackHandler } from "react-native";
 import { useRouter } from "expo-router";
-import { authService } from "../../services/authService";
+import { authService } from "../../../auth/services/authService";
 import { spacing, colors, commonStyles } from "../../../../styles/common";
 import { ProfileHeader } from "./components/ProfileHeader";
 import { StatsSection } from "./components/StatsSection";
