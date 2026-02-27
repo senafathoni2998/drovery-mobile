@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { spacing, borderRadius, colors, commonStyles } from "../../../../../styles/common";
+import { spacing, borderRadius, colors, commonStyles } from "@/styles/common";
 import type { DeliveryItem } from "../OrdersScreen.types";
 import { StatusChip } from "./StatusChip";
 
