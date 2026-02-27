@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { authService, SignupCredentials } from "../../services/authService";
+import { authService, SignupCredentials } from "../../../auth/services/authService";
 import { styles } from "../LoginScreen/LoginScreen.styles";
 import { SignupHeroCard } from "./components/SignupHeroCard";
 import { signupStyles } from "./SignupScreen.styles";
