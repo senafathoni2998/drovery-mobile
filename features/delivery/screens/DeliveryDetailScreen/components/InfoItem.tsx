@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { spacing, colors } from "../../../../../styles/common";
+import { spacing, colors, borderRadius } from "@/styles/common";
 
 interface InfoItemProps {
   icon: keyof typeof MaterialIcons.glyphMap | keyof typeof Ionicons.glyphMap;
