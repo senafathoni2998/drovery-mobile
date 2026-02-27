@@ -3,7 +3,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import { styles, colors, spacing, borderRadius } from "../LoginScreen/LoginScreen.styles";
+import { styles, colors, spacing, borderRadius } from "@/features/auth/screens/LoginScreen/LoginScreen.styles";
 
 interface SignupHeroCardProps {
   entering: typeof FadeInDown;
