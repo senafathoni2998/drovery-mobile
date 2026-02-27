@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ScrollView } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { spacing, borderRadius, colors, commonStyles } from "../../../../../styles/common";
+import { spacing, borderRadius, colors, commonStyles } from "@/styles/common";
 import type { DeliveryStatus } from "../OrdersScreen.types";
 
 interface TabsProps {
