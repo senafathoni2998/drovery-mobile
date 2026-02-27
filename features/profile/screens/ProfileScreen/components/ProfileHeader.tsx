@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { spacing, borderRadius, colors, commonStyles } from "../../../../../styles/common";
+import { spacing, borderRadius, colors, commonStyles } from "@/styles/common";
 
 interface HeaderProps {
   userName: string;
