@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ScrollView } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { spacing, borderRadius, colors, commonStyles } from "@/styles/common";
