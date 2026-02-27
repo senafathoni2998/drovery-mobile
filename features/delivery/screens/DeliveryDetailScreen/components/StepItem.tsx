@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { spacing, borderRadius, colors } from "../../../../../styles/common";
+import { spacing, borderRadius, colors } from "@/styles/common";
 import type { Step, StepState } from "../DeliveryDetailScreen.types";
 
 interface StepItemProps {
