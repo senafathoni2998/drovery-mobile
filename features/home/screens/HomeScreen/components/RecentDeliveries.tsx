@@ -3,7 +3,7 @@ import { StyleSheet, ScrollView, Text, TouchableOpacity, View } from "react-nati
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { spacing, borderRadius, colors } from "../../../../../styles/common";
+import { spacing, borderRadius, colors } from "@/styles/common";
 import type { RecentItem } from "../HomeScreen.types";
 
 interface RecentDeliveriesProps {
