@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { colors, spacing, borderRadius, commonStyles } from "../../../../../styles/common";
+import { colors, spacing, borderRadius, commonStyles } from "@/styles/common";
 
 interface EmptyStateProps {
   title: string;
