@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { spacing, borderRadius, colors } from "../../../../../styles/common";
+import { spacing, borderRadius, colors } from "@/styles/common";
 
 interface FooterActionsProps {
   onTrackMap?: () => void;
