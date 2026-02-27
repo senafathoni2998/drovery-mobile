@@ -3,7 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { spacing, borderRadius, colors } from "../../../../../styles/common";
+import { spacing, borderRadius, colors } from "@/styles/common";
 
 export function MapCard() {
   const handleOpenMap = () => {
