@@ -1,11 +1,11 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { spacing, borderRadius, colors, commonStyles } from "../../../../../styles/common";
-import { MOCK_DELIVERY, STEPS, CURRENT_STEP_INDEX, type Delivery } from "../DeliveryDetailScreen.types";
+import { spacing, borderRadius, colors, commonStyles } from "../../../../styles/common";
+import { MOCK_DELIVERY, STEPS, CURRENT_STEP_INDEX, type Delivery } from "./DeliveryDetailScreen.types";
 import { InfoItem } from "./components/InfoItem";
 import { StepItem } from "./components/StepItem";
 import { FooterActions } from "./components/FooterActions";
