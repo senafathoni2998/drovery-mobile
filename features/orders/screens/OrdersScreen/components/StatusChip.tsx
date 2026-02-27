@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { statusBadge } from "../../../../../styles/common";
+import { statusBadge } from "@/styles/common";
 import type { DeliveryStatus } from "../OrdersScreen.types";
 
 interface StatusChipProps {
