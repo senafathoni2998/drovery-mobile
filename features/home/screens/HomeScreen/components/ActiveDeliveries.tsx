@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { spacing, borderRadius, colors } from "@/styles/common";
 import { cardWithShadow } from "@/styles/common";
 import type { Delivery } from "../HomeScreen.types";
@@ -12,8 +13,13 @@ interface ActiveDeliveriesProps {
 }
 
 export function ActiveDeliveries({ deliveries }: ActiveDeliveriesProps) {
+  const router = useRouter();
+
   const DeliveryCard = ({ delivery }: { delivery: Delivery }) => (
-    <TouchableOpacity style={styles.deliveryCard}>
+    <TouchableOpacity
+      style={styles.deliveryCard}
+      onPress={() => router.push("/delivery-detail")}
+    >
       <View style={styles.deliveryCardHeader}>
         <View style={styles.deliveryIconContainer}>
           <MaterialIcons name="local-shipping" size={24} color={colors.primary.DEFAULT} />
@@ -52,7 +58,7 @@ export function ActiveDeliveries({ deliveries }: ActiveDeliveriesProps) {
     <Animated.View entering={FadeInDown.delay(200).duration(500).springify()} style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Active deliveries</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/orders?tab=current")}>
           <Text style={styles.seeAllText}>View all</Text>
         </TouchableOpacity>
       </View>
