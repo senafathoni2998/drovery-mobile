@@ -28,7 +28,7 @@ export function OrdersHeader({
 }: OrdersHeaderProps) {
   return (
     <View style={styles.headerContainer}>
-      <Text style={styles.headerTitle}>Delivery</Text>
+      {/* <Text style={styles.headerTitle}>Delivery</Text> */}
 
       <View style={styles.headerRight}>
         {/* Search */}
@@ -83,9 +83,8 @@ export function OrdersHeader({
 
 const styles = StyleSheet.create({
   headerContainer: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    justifyContent: "space-between" as const,
+    flexDirection: "column" as const,
+    alignItems: "flex-start" as const,
     gap: spacing.md,
   },
   headerTitle: {
