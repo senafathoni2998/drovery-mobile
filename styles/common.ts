@@ -269,10 +269,10 @@ export const cardWithShadow = (level: "sm" | "md" | "lg" = "md") => {
 
 export const statusBadge = (status: "completed" | "canceled" | "current" | "in-progress") => {
   const config = {
-    completed: { bg: "#ECFDF5", color: "#047857", border: "#A7F3D0", icon: "checkmark-circle" as const },
-    canceled: { bg: "#FEF2F2", color: "#B91C1C", border: "#FECACA", icon: "close-circle" as const },
-    current: { bg: "#E0F2FE", color: "#0369A1", border: "#BAE6FD", icon: "time" as const },
-    "in-progress": { bg: "#E0F2FE", color: "#0369A1", border: "#BAE6FD", icon: "time" as const },
+    completed: { bg: "#ECFDF5", color: "#047857", border: "#A7F3D0", icon: "checkmark-circle" as const, label: "Completed" },
+    canceled: { bg: "#FEF2F2", color: "#B91C1C", border: "#FECACA", icon: "close-circle" as const, label: "Canceled" },
+    current: { bg: "#E0F2FE", color: "#0369A1", border: "#BAE6FD", icon: "time" as const, label: "Current" },
+    "in-progress": { bg: "#E0F2FE", color: "#0369A1", border: "#BAE6FD", icon: "time" as const, label: "In Progress" },
   };
   return config[status];
 };
