@@ -14,11 +14,11 @@ import type { Delivery, RecentItem, QuickAction } from "./HomeScreen.types";
 
 // ==================== DATA ====================
 const quickActions: QuickAction[] = [
-  { label: "New Delivery", icon: "add", tone: ["#14B8A6", "#06B6D4"] },
-  { label: "Scan QR", icon: "qr-code", tone: ["#6366F1", "#0EA5E9"] },
+  { label: "New Delivery", icon: "add-circle", tone: ["#14B8A6", "#06B6D4"] },
+  { label: "Scan QR", icon: "qr-code-scanner", tone: ["#6366F1", "#0EA5E9"] },
   { label: "Track Package", icon: "local-shipping", tone: ["#10B981", "#84CC16"] },
   { label: "Price Estimate", icon: "payments", tone: ["#F59E0B", "#F97316"] },
-];
+] as const;
 
 const activeDeliveries: Delivery[] = [
   { id: "11324572", title: "Hamburger & Fries", status: "In Progress", progress: 45, eta: "11:00 AM" },
