@@ -1,3 +1,5 @@
+import { MaterialIcons } from "@expo/vector-icons";
+
 export interface Delivery {
   id: string;
   title: string;
@@ -15,5 +17,5 @@ export interface RecentItem {
 export interface QuickAction {
   label: string;
   icon: keyof typeof MaterialIcons.glyphMap;
-  tone: string[];
+  tone: readonly [string, string];
 }
