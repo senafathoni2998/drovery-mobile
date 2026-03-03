@@ -1,25 +1,36 @@
-import React, { useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import { ScrollView } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import React, { useMemo, useState, useEffect } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { spacing, colors, commonStyles } from "../../../../styles/common";
-import { OrdersHeader } from "./components/OrdersHeader";
-import { Tabs } from "./components/Tabs";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { commonStyles, spacing } from "../../../../styles/common";
 import { DeliveryCard } from "./components/DeliveryCard";
 import { EmptyState } from "./components/EmptyState";
-import { MOCK_ITEMS, TABS, type DeliveryItem, type DeliveryStatus, type SortOption } from "./OrdersScreen.types";
+import { OrdersHeader } from "./components/OrdersHeader";
+import { Tabs } from "./components/Tabs";
+import {
+  MOCK_ITEMS,
+  TABS,
+  type DeliveryStatus,
+  type SortOption,
+} from "./OrdersScreen.types";
 
 // ==================== MAIN COMPONENT ====================
 export function OrdersScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const params = useLocalSearchParams<{ tab?: DeliveryStatus }>();
 
   // State
   const [activeTab, setActiveTab] = useState<DeliveryStatus>("current");
+
+  // Set active tab from URL param
+  useEffect(() => {
+    if (params.tab && ["current", "completed", "canceled"].includes(params.tab)) {
+      setActiveTab(params.tab);
+    }
+  }, [params.tab]);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
   const [sortVisible, setSortVisible] = useState(false);
@@ -29,7 +40,9 @@ export function OrdersScreen() {
     const base = MOCK_ITEMS.filter((i) => i.status === activeTab);
     const q = query.trim().toLowerCase();
     const searched = q
-      ? base.filter((i) => i.title.toLowerCase().includes(q) || i.id.includes(q))
+      ? base.filter(
+          (i) => i.title.toLowerCase().includes(q) || i.id.includes(q),
+        )
       : base;
     const sorted = [...searched].sort((a, b) => {
       if (sortBy === "title") return a.title.localeCompare(b.title);
@@ -74,11 +87,19 @@ export function OrdersScreen() {
         <Tabs tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
 
         {/* List */}
-        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()} style={styles.listContainer}>
+        <Animated.View
+          entering={FadeInDown.delay(200).duration(500).springify()}
+          style={styles.listContainer}
+        >
           {filteredItems.length > 0 ? (
-            filteredItems.map((item) => <DeliveryCard key={item.id} item={item} />)
+            filteredItems.map((item) => (
+              <DeliveryCard key={item.id} item={item} />
+            ))
           ) : (
-            <EmptyState title="No deliveries found" message="Try changing your filter or search query" />
+            <EmptyState
+              title="No deliveries found"
+              message="Try changing your filter or search query"
+            />
           )}
         </Animated.View>
       </ScrollView>
