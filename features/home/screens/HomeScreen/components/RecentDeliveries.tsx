@@ -3,6 +3,7 @@ import { StyleSheet, ScrollView, Text, TouchableOpacity, View } from "react-nati
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { spacing, borderRadius, colors } from "@/styles/common";
 import type { RecentItem } from "../HomeScreen.types";
 
@@ -11,8 +12,13 @@ interface RecentDeliveriesProps {
 }
 
 export function RecentDeliveries({ items }: RecentDeliveriesProps) {
+  const router = useRouter();
+
   const RecentCard = ({ item }: { item: RecentItem }) => (
-    <View style={styles.recentCard}>
+    <TouchableOpacity
+      style={styles.recentCard}
+      onPress={() => router.push("/delivery-detail")}
+    >
       <View style={styles.recentIconContainer}>
         <MaterialIcons name="inventory-2" size={20} color={colors.text.light} />
       </View>
@@ -27,14 +33,14 @@ export function RecentDeliveries({ items }: RecentDeliveriesProps) {
           {item.sub}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
     <Animated.View entering={FadeInDown.delay(200).duration(500).springify()} style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Recent deliveries</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/orders?tab=completed")}>
           <Text style={styles.seeAllText}>See history</Text>
         </TouchableOpacity>
       </View>
