@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { spacing, borderRadius, colors } from "@/styles/common";
 import type { QuickAction } from "../HomeScreen.types";
 
@@ -11,8 +12,27 @@ interface QuickActionsProps {
 }
 
 export function QuickActions({ actions }: QuickActionsProps) {
+  const router = useRouter();
+
+  const handleActionPress = (label: string) => {
+    switch (label) {
+      case "New Delivery":
+        router.push("/create-delivery");
+        break;
+      case "Scan QR":
+        // TODO: Implement QR scanner
+        break;
+      case "Track Package":
+        // TODO: Implement package tracking
+        break;
+      case "Price Estimate":
+        // TODO: Implement price estimate
+        break;
+    }
+  };
+
   const QuickActionButton = ({ label, icon, tone }: QuickAction) => (
-    <TouchableOpacity style={styles.quickButton}>
+    <TouchableOpacity style={styles.quickButton} onPress={() => handleActionPress(label)}>
       <LinearGradient
         colors={tone}
         start={{ x: 0, y: 0 }}
