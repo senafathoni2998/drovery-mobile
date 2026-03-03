@@ -1,14 +1,30 @@
-import React from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import React from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { spacing, borderRadius, colors, commonStyles } from "../../../../styles/common";
-import { MOCK_DELIVERY, STEPS, CURRENT_STEP_INDEX, type Delivery } from "./DeliveryDetailScreen.types";
+import {
+  borderRadius,
+  colors,
+  commonStyles,
+  spacing,
+} from "../../../../styles/common";
+import {
+  CURRENT_STEP_INDEX,
+  MOCK_DELIVERY,
+  STEPS,
+  type Delivery,
+} from "./DeliveryDetailScreen.types";
+import { FooterActions } from "./components/FooterActions";
 import { InfoItem } from "./components/InfoItem";
 import { StepItem } from "./components/StepItem";
-import { FooterActions } from "./components/FooterActions";
 
 // ==================== MAIN COMPONENT ====================
 export function DeliveryDetailScreen() {
@@ -65,18 +81,54 @@ export function DeliveryDetailScreen() {
         {/* Summary Card */}
         <View style={styles.summaryCard}>
           <InfoRow>
-            <InfoItem icon="location-on" iconType="Material" label="From" value={delivery.from} color={colors.primary.DEFAULT} />
-            <InfoItem icon="location-on" iconType="Material" label="To" value={delivery.to} color="#F43F5E" />
+            <InfoItem
+              icon="location-on"
+              iconType="Material"
+              label="From"
+              value={delivery.from}
+              color={colors.primary.DEFAULT}
+            />
+            <InfoItem
+              icon="location-on"
+              iconType="Material"
+              label="To"
+              value={delivery.to}
+              color="#F43F5E"
+            />
           </InfoRow>
 
           <InfoRow>
-            <InfoItem icon="person" iconType="Material" label="Sender" value={delivery.sender} color="#6366F1" />
-            <InfoItem icon="person" iconType="Material" label="Receiver" value={delivery.receiver} color="#0EA5E9" />
+            <InfoItem
+              icon="person"
+              iconType="Material"
+              label="Sender"
+              value={delivery.sender}
+              color="#6366F1"
+            />
+            <InfoItem
+              icon="person"
+              iconType="Material"
+              label="Receiver"
+              value={delivery.receiver}
+              color="#0EA5E9"
+            />
           </InfoRow>
 
           <InfoRow>
-            <InfoItem icon="calendar-month" iconType="Material" label="Pickup Date" value={delivery.pickupAt} color={colors.success} />
-            <InfoItem icon="schedule" iconType="Material" label="Estimated Date" value={delivery.eta} color={colors.warning} />
+            <InfoItem
+              icon="calendar-month"
+              iconType="Material"
+              label="Pickup Date"
+              value={delivery.pickupAt}
+              color={colors.success}
+            />
+            <InfoItem
+              icon="schedule"
+              iconType="Material"
+              label="Estimated Date"
+              value={delivery.eta}
+              color={colors.warning}
+            />
           </InfoRow>
 
           <InfoItem
@@ -104,16 +156,26 @@ export function DeliveryDetailScreen() {
                   index < CURRENT_STEP_INDEX
                     ? "done"
                     : index === CURRENT_STEP_INDEX
-                    ? "current"
-                    : "upcoming";
-                return <StepItem key={step.title} step={step} index={index} state={state} />;
+                      ? "current"
+                      : "upcoming";
+                return (
+                  <StepItem
+                    key={step.title}
+                    step={step}
+                    index={index}
+                    state={state}
+                  />
+                );
               })}
             </View>
           </View>
         </View>
 
         {/* Footer Actions */}
-        <FooterActions onTrackMap={handleTrackMap} onContactSupport={handleContactSupport} />
+        <FooterActions
+          onTrackMap={handleTrackMap}
+          onContactSupport={handleContactSupport}
+        />
       </ScrollView>
     </View>
   );
@@ -218,7 +280,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border.DEFAULT,
     padding: spacing.xxl,
     marginHorizontal: spacing.lg,
-    marginTop: -48,
+    marginTop: -16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
