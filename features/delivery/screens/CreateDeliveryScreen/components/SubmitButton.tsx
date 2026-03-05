@@ -27,7 +27,7 @@ export function SubmitButton({
           <ActivityIndicator color="#fff" />
         ) : (
           <>
-            <Ionicons name="send" size={18} color="#fff" />
+            <Ionicons name="navigate" size={18} color="#fff" />
             <Text style={styles.submitText}>{label}</Text>
           </>
         )}
