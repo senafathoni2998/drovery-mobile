@@ -4,6 +4,16 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { spacing, borderRadius, colors, fontSize } from "@/styles/common";
 import type { PackageType } from "../CreateDeliveryScreen.types";
 
+const ACCENT: Record<string, string> = {
+  food:        "#F97316",
+  document:    "#3B82F6",
+  fragile:     "#8B5CF6",
+  electronics: "#06B6D4",
+  clothing:    "#EC4899",
+  healthcare:  "#10B981",
+  other:       "#64748B",
+};
+
 interface PackageTypeSelectorProps {
   types: PackageType[];
   selected: string[];
@@ -15,21 +25,44 @@ export function PackageTypeSelector({ types, selected, onSelect }: PackageTypeSe
     <View style={styles.container}>
       {types.map((type) => {
         const isSelected = selected.includes(type.id);
+        const accent = ACCENT[type.id] ?? colors.primary.DEFAULT;
+
         return (
           <TouchableOpacity
             key={type.id}
-            style={[styles.option, isSelected && styles.optionActive]}
+            style={[
+              styles.option,
+              isSelected && { backgroundColor: `${accent}18`, borderColor: accent },
+            ]}
             onPress={() => onSelect(type.id)}
             activeOpacity={0.7}
           >
-            <View style={[styles.iconContainer, isSelected && styles.iconContainerActive]}>
-              <MaterialIcons
-                name={type.icon}
-                size={20}
-                color={isSelected ? colors.white : colors.text.light}
-              />
+            {/* Check badge */}
+            {isSelected && (
+              <View style={[styles.checkBadge, { backgroundColor: accent }]}>
+                <MaterialIcons name="check" size={10} color={colors.white} />
+              </View>
+            )}
+
+            {/* Icon container */}
+            <View
+              style={[
+                styles.iconContainer,
+                { backgroundColor: `${accent}18` },
+                isSelected && { backgroundColor: `${accent}30` },
+              ]}
+            >
+              <MaterialIcons name={type.icon} size={22} color={accent} />
             </View>
-            <Text style={[styles.optionText, isSelected && styles.optionTextActive]}>
+
+            {/* Label */}
+            <Text
+              style={[
+                styles.label,
+                isSelected && { color: accent, fontWeight: "600" },
+              ]}
+              numberOfLines={1}
+            >
               {type.label}
             </Text>
           </TouchableOpacity>
@@ -41,43 +74,48 @@ export function PackageTypeSelector({ types, selected, onSelect }: PackageTypeSe
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row" as const,
-    flexWrap: "wrap" as const,
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm,
   },
   option: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    width: "22%",
+    alignItems: "center",
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xs,
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border.DEFAULT,
     backgroundColor: colors.white,
-    minWidth: 100,
+    position: "relative",
+    gap: spacing.xs,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
   },
-  optionActive: {
-    backgroundColor: colors.primary.DEFAULT,
-    borderColor: colors.primary.DEFAULT,
+  checkBadge: {
+    position: "absolute",
+    top: spacing.xs,
+    right: spacing.xs,
+    width: 18,
+    height: 18,
+    borderRadius: borderRadius.full,
+    alignItems: "center",
+    justifyContent: "center",
   },
   iconContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: borderRadius.sm,
-    backgroundColor: colors.border.light,
-    justifyContent: "center" as const,
-    alignItems: "center" as const,
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.md,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  iconContainerActive: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-  },
-  optionText: {
-    fontSize: fontSize.md,
+  label: {
+    fontSize: fontSize.xs,
     fontWeight: "500",
     color: colors.text.secondary,
-  },
-  optionTextActive: {
-    color: colors.white,
+    textAlign: "center",
   },
 });
