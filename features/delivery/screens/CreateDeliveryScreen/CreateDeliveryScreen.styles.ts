@@ -1,5 +1,5 @@
-import { StyleSheet } from "react-native";
 import { borderRadius, colors, fontSize, spacing } from "@/styles/common";
+import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   scrollContent: {
@@ -26,7 +26,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row" as const,
     alignItems: "center" as const,
     justifyContent: "space-between" as const,
-    marginBottom: spacing.md,
+    marginBottom: spacing.xs,
   },
   backButton: {
     width: 36,
@@ -44,6 +44,11 @@ export const styles = StyleSheet.create({
   headerPlaceholder: {
     width: 36,
   },
+  headerSubtitle: {
+    fontSize: fontSize.base,
+    color: "rgba(255, 255, 255, 0.75)",
+    textAlign: "center" as const,
+  },
   headerBlur: {
     position: "absolute",
     right: -48,
@@ -53,6 +58,15 @@ export const styles = StyleSheet.create({
     borderRadius: 56,
     backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
+  headerBlurSecondary: {
+    position: "absolute",
+    left: -32,
+    bottom: -32,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+  },
   // Form Card
   formCard: {
     backgroundColor: colors.white,
@@ -60,27 +74,39 @@ export const styles = StyleSheet.create({
     borderTopRightRadius: borderRadius.xxl,
     paddingTop: spacing.xxl,
     paddingHorizontal: spacing.lg,
-    marginTop: -24,
-    minHeight: 500,
+    marginTop: -48,
+    flex: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 6,
   },
   // Section
   section: {
-    marginBottom: spacing.xl,
+    marginBottom: spacing.xxxl,
   },
   sectionHeader: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
     gap: spacing.sm,
     marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
   },
   sectionTitle: {
-    fontSize: fontSize.lg,
+    fontSize: fontSize.xl,
     fontWeight: "600",
     color: colors.text.primary,
   },
   sectionIcon: {
-    width: 24,
-    height: 24,
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.sm,
+    backgroundColor: "#F0FDFA",
+    borderWidth: 1,
+    borderColor: "#CCFBF1",
     justifyContent: "center" as const,
     alignItems: "center" as const,
   },
@@ -98,7 +124,7 @@ export const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border.DEFAULT,
     borderRadius: borderRadius.lg,
@@ -115,7 +141,7 @@ export const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   inputIcon: {
-    color: "#94A3B8",
+    color: colors.primary.DEFAULT,
   },
   errorText: {
     fontSize: fontSize.md,
@@ -131,12 +157,17 @@ export const styles = StyleSheet.create({
   swapButton: {
     width: 40,
     height: 40,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.full,
     backgroundColor: "#F0FDFA",
-    borderWidth: 1,
-    borderColor: "#CCFBF1",
+    borderWidth: 1.5,
+    borderColor: "#99F6E4",
     justifyContent: "center" as const,
     alignItems: "center" as const,
+    shadowColor: colors.primary.DEFAULT,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
   // Package Size Selector
   sizeSelector: {
@@ -146,26 +177,57 @@ export const styles = StyleSheet.create({
   },
   sizeOption: {
     flex: 1,
-    minWidth: 70,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xs,
     borderRadius: borderRadius.md,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border.DEFAULT,
     backgroundColor: colors.white,
+    flexDirection: "column" as const,
     alignItems: "center" as const,
+    justifyContent: "center" as const,
+    position: "relative" as const,
+    gap: 2,
   },
   sizeOptionActive: {
     backgroundColor: colors.primary.DEFAULT,
     borderColor: colors.primary.DEFAULT,
   },
+  sizeCheckBadge: {
+    position: "absolute" as const,
+    top: spacing.xs,
+    right: spacing.xs,
+    width: 16,
+    height: 16,
+    borderRadius: borderRadius.full,
+    backgroundColor: "rgba(255,255,255,0.35)",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  },
   sizeOptionText: {
-    fontSize: fontSize.md,
-    fontWeight: "500",
-    color: colors.text.secondary,
+    fontSize: fontSize.base,
+    fontWeight: "700",
+    color: colors.text.primary,
   },
   sizeOptionTextActive: {
     color: colors.white,
+  },
+  sizeDims: {
+    fontSize: fontSize.xs,
+    color: colors.text.placeholder,
+    textAlign: "center" as const,
+  },
+  sizeDimsActive: {
+    color: "rgba(255,255,255,0.8)",
+  },
+  sizeWeight: {
+    fontSize: fontSize.xs,
+    fontWeight: "600",
+    color: colors.text.muted,
+    textAlign: "center" as const,
+  },
+  sizeWeightActive: {
+    color: "rgba(255,255,255,0.9)",
   },
   // Date Time Row
   row: {
@@ -177,10 +239,11 @@ export const styles = StyleSheet.create({
   },
   // Submit Button
   submitButton: {
-    height: 52,
+    height: 56,
     borderRadius: borderRadius.lg,
     overflow: "hidden",
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
+    marginBottom: spacing.xl,
   },
   submitGradient: {
     flex: 1,
@@ -190,8 +253,8 @@ export const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   submitText: {
-    fontSize: fontSize.lg,
-    fontWeight: "600",
+    fontSize: fontSize.xl,
+    fontWeight: "700",
     color: colors.white,
   },
 });
