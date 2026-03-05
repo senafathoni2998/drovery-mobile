@@ -26,7 +26,12 @@ export function FormHeader({ title, onBack }: FormHeaderProps) {
           <View style={styles.headerPlaceholder} />
         </View>
 
+        <Text style={styles.headerSubtitle}>
+          Schedule a drone pickup in a few steps
+        </Text>
+
         <View style={styles.headerBlur} />
+        <View style={styles.headerBlurSecondary} />
       </LinearGradient>
     </View>
   );
