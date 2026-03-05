@@ -16,7 +16,7 @@ export function FormSection({ title, icon, children, style }: FormSectionProps) 
     <View style={[styles.section, style]}>
       <View style={styles.sectionHeader}>
         <View style={styles.sectionIcon}>
-          <MaterialIcons name={icon} size={20} color="#0D9488" />
+          <MaterialIcons name={icon} size={18} color="#0D9488" />
         </View>
         <Text style={styles.sectionTitle}>{title}</Text>
       </View>
