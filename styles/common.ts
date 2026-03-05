@@ -241,10 +241,7 @@ export const commonStyles = StyleSheet.create({
 });
 
 // ==================== HELPER FUNCTIONS ====================
-export const createStyle = (
-  base: any,
-  ...overrides: any[]
-) => {
+export const createStyle = (base: any, ...overrides: any[]) => {
   return StyleSheet.create({
     ...base,
     ...overrides.reduce((acc, override) => ({ ...acc, ...override }), {}),
@@ -253,9 +250,24 @@ export const createStyle = (
 
 export const cardWithShadow = (level: "sm" | "md" | "lg" = "md") => {
   const shadows = {
-    sm: { shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
-    md: { shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
-    lg: { shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4 },
+    sm: {
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    md: {
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    lg: {
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+    },
   };
 
   return {
@@ -267,12 +279,38 @@ export const cardWithShadow = (level: "sm" | "md" | "lg" = "md") => {
   };
 };
 
-export const statusBadge = (status: "completed" | "canceled" | "current" | "in-progress") => {
+export const statusBadge = (
+  status: "completed" | "canceled" | "current" | "in-progress",
+) => {
   const config = {
-    completed: { bg: "#ECFDF5", color: "#047857", border: "#A7F3D0", icon: "checkmark-circle" as const, label: "Completed" },
-    canceled: { bg: "#FEF2F2", color: "#B91C1C", border: "#FECACA", icon: "close-circle" as const, label: "Canceled" },
-    current: { bg: "#E0F2FE", color: "#0369A1", border: "#BAE6FD", icon: "time" as const, label: "Current" },
-    "in-progress": { bg: "#E0F2FE", color: "#0369A1", border: "#BAE6FD", icon: "time" as const, label: "In Progress" },
+    completed: {
+      bg: "#ECFDF5",
+      color: "#047857",
+      border: "#A7F3D0",
+      icon: "checkmark-circle" as const,
+      label: "Completed",
+    },
+    canceled: {
+      bg: "#FEF2F2",
+      color: "#B91C1C",
+      border: "#FECACA",
+      icon: "close-circle" as const,
+      label: "Canceled",
+    },
+    current: {
+      bg: "#E0F2FE",
+      color: "#0369A1",
+      border: "#BAE6FD",
+      icon: "time" as const,
+      label: "Current",
+    },
+    "in-progress": {
+      bg: "#E0F2FE",
+      color: "#0369A1",
+      border: "#BAE6FD",
+      icon: "time" as const,
+      label: "In Progress",
+    },
   };
   return config[status];
 };
