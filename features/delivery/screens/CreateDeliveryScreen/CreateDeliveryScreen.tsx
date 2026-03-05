@@ -24,6 +24,7 @@ import {
   DateTimeRow,
   SubmitButton,
   PackageTypeSelector,
+  LocationPickerField,
 } from "./components";
 
 // Package types options
@@ -96,18 +97,31 @@ export function CreateDeliveryScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!validate()) return;
 
     setLoading(true);
-
-    // TODO: Connect to your API here
-    console.log("Creating delivery:", formData);
-
     setTimeout(() => {
       setLoading(false);
-      router.back();
-    }, 1000);
+      router.push({
+        pathname: "/delivery-confirmation",
+        params: {
+          from: formData.from,
+          to: formData.to,
+          receiver: formData.receiver,
+          packages: formData.packages,
+          packageSize: formData.packageSize,
+          packageWeight: formData.packageWeight,
+          pickupDate: formData.pickupDate,
+          pickupTime: formData.pickupTime,
+          packageTypes: JSON.stringify(formData.packageTypes),
+        },
+      });
+    }, 600);
+  };
+
+  const handleSwap = () => {
+    setFormData((prev) => ({ ...prev, from: prev.to, to: prev.from }));
   };
 
   const handleBack = () => router.back();
@@ -132,25 +146,23 @@ export function CreateDeliveryScreen() {
         >
           {/* Location Section */}
           <FormSection title="Location" icon="location-on">
-            <InputField
+            <LocationPickerField
               label="From"
-              icon="location-on"
-              placeholder="Enter pickup location"
+              placeholder="Select pickup location"
               value={formData.from}
               error={errors.from}
-              onChangeText={(v) => updateField("from", v)}
+              onChange={(v) => updateField("from", v)}
               editable={!loading}
             />
 
-            <SwapButton />
+            <SwapButton onPress={handleSwap} />
 
-            <InputField
+            <LocationPickerField
               label="To"
-              icon="location-on"
-              placeholder="Enter destination"
+              placeholder="Select destination"
               value={formData.to}
               error={errors.to}
-              onChangeText={(v) => updateField("to", v)}
+              onChange={(v) => updateField("to", v)}
               editable={!loading}
             />
           </FormSection>
@@ -190,7 +202,7 @@ export function CreateDeliveryScreen() {
             <InputField
               label="Package Weight"
               icon="scale"
-              placeholder="e.g., 1.5 kg"
+              placeholder="e.g., 0.5 kg (max 5 kg)"
               value={formData.packageWeight}
               error={errors.packageWeight}
               onChangeText={(v) => updateField("packageWeight", v)}
@@ -216,7 +228,6 @@ export function CreateDeliveryScreen() {
             <DateTimeRow
               dateProps={{
                 label: "Date",
-                icon: "calendar-month",
                 placeholder: "Select date",
                 value: formData.pickupDate,
                 error: errors.pickupDate,
@@ -225,7 +236,6 @@ export function CreateDeliveryScreen() {
               }}
               timeProps={{
                 label: "Time",
-                icon: "schedule",
                 placeholder: "Select time",
                 value: formData.pickupTime,
                 error: errors.pickupTime,
