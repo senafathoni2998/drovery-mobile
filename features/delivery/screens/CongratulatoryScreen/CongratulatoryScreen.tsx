@@ -1,3 +1,7 @@
+import { borderRadius, colors, fontSize, spacing } from "@/styles/common";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import {
   StyleSheet,
@@ -8,7 +12,6 @@ import {
 } from "react-native";
 import Animated, {
   BounceIn,
-  FadeIn,
   FadeInUp,
   useAnimatedStyle,
   useSharedValue,
@@ -17,11 +20,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { borderRadius, colors, fontSize, spacing } from "@/styles/common";
 
 export function CongratulatoryScreen() {
   const router = useRouter();
@@ -45,7 +44,10 @@ export function CongratulatoryScreen() {
     ringScale.value = withDelay(
       600,
       withRepeat(
-        withSequence(withTiming(1.35, { duration: 900 }), withTiming(1, { duration: 900 })),
+        withSequence(
+          withTiming(1.35, { duration: 900 }),
+          withTiming(1, { duration: 900 }),
+        ),
         -1,
         true,
       ),
@@ -53,7 +55,10 @@ export function CongratulatoryScreen() {
     ringOpacity.value = withDelay(
       600,
       withRepeat(
-        withSequence(withTiming(0, { duration: 900 }), withTiming(0.4, { duration: 900 })),
+        withSequence(
+          withTiming(0, { duration: 900 }),
+          withTiming(0.4, { duration: 900 }),
+        ),
         -1,
         true,
       ),
@@ -91,21 +96,37 @@ export function CongratulatoryScreen() {
         {/* Pulsing ring + success icon */}
         <View style={s.iconWrapper}>
           <Animated.View style={[s.ring, ringStyle]} />
-          <Animated.View entering={BounceIn.delay(200).duration(700)} style={s.iconCircle}>
-            <Ionicons name="checkmark" size={48} color={colors.primary.DEFAULT} />
+          <Animated.View
+            entering={BounceIn.delay(200).duration(700)}
+            style={s.iconCircle}
+          >
+            <Ionicons
+              name="checkmark"
+              size={48}
+              color={colors.primary.DEFAULT}
+            />
           </Animated.View>
         </View>
 
         {/* Heading */}
-        <Animated.Text entering={FadeInUp.delay(400).duration(500)} style={s.heading}>
+        <Animated.Text
+          entering={FadeInUp.delay(400).duration(500)}
+          style={s.heading}
+        >
           Congratulations!
         </Animated.Text>
-        <Animated.Text entering={FadeInUp.delay(500).duration(500)} style={s.subheading}>
+        <Animated.Text
+          entering={FadeInUp.delay(500).duration(500)}
+          style={s.subheading}
+        >
           Your delivery has been confirmed{"\n"}and is now being processed.
         </Animated.Text>
 
         {/* Order badge */}
-        <Animated.View entering={FadeInUp.delay(600).duration(500)} style={s.orderBadge}>
+        <Animated.View
+          entering={FadeInUp.delay(600).duration(500)}
+          style={s.orderBadge}
+        >
           <MaterialIcons name="tag" size={13} color={colors.white} />
           <Text style={s.orderBadgeText}>{params.orderId ?? "DRV-00000"}</Text>
         </Animated.View>
@@ -116,72 +137,97 @@ export function CongratulatoryScreen() {
         entering={FadeInUp.delay(300).duration(500)}
         style={s.card}
       >
-        {/* Route summary */}
-        <View style={s.routeRow}>
-          <View style={s.routePoint}>
-            <View style={[s.routeDot, { backgroundColor: colors.primary.DEFAULT }]} />
-            <Text style={s.routeLabel}>From</Text>
-            <Text style={s.routeValue} numberOfLines={2}>{params.from ?? "—"}</Text>
+        {/* Delivery Summary */}
+        <Text style={s.sectionTitle}>Delivery Summary</Text>
+
+        {/* Vertical route */}
+        <View style={s.routeContainer}>
+          <View style={s.routeStop}>
+            <View style={s.routeStopIndicator}>
+              <View style={[s.routeDot, { backgroundColor: colors.primary.DEFAULT }]} />
+              <View style={s.routeConnectorLine} />
+            </View>
+            <View style={s.routeStopInfo}>
+              <Text style={s.routeLabel}>From</Text>
+              <Text style={s.routeValue}>{params.from ?? "—"}</Text>
+            </View>
           </View>
 
-          <View style={s.routeArrow}>
-            <View style={s.routeLine} />
-            <MaterialIcons name="flight-takeoff" size={20} color={colors.primary.DEFAULT} />
-            <View style={s.routeLine} />
-          </View>
-
-          <View style={[s.routePoint, { alignItems: "flex-end" }]}>
-            <View style={[s.routeDot, { backgroundColor: "#F43F5E" }]} />
-            <Text style={s.routeLabel}>To</Text>
-            <Text style={[s.routeValue, { textAlign: "right" }]} numberOfLines={2}>
-              {params.to ?? "—"}
-            </Text>
+          <View style={s.routeStop}>
+            <View style={s.routeStopIndicator}>
+              <View style={[s.routeDot, { backgroundColor: "#F43F5E" }]} />
+            </View>
+            <View style={s.routeStopInfo}>
+              <Text style={s.routeLabel}>To</Text>
+              <Text style={s.routeValue}>{params.to ?? "—"}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Delivery info pills */}
-        <View style={s.infoRow}>
-          <View style={s.infoPill}>
-            <MaterialIcons name="calendar-month" size={14} color={colors.primary.DEFAULT} />
-            <Text style={s.infoPillText}>{params.pickupDate ?? "—"}</Text>
+        {/* Info grid */}
+        <View style={s.infoGrid}>
+          <View style={s.infoCell}>
+            <View style={[s.infoCellIcon, { backgroundColor: "#E0F2FE" }]}>
+              <MaterialIcons name="calendar-month" size={16} color={colors.primary.DEFAULT} />
+            </View>
+            <Text style={s.infoCellValue}>{params.pickupDate ?? "—"}</Text>
+            <Text style={s.infoCellLabel}>Pickup Date</Text>
           </View>
-          <View style={s.infoPill}>
-            <MaterialIcons name="schedule" size={14} color={colors.warning} />
-            <Text style={s.infoPillText}>Est. {params.estTime ?? "—"}</Text>
+          <View style={s.infoCellSep} />
+          <View style={s.infoCell}>
+            <View style={[s.infoCellIcon, { backgroundColor: "#FEF9C3" }]}>
+              <MaterialIcons name="schedule" size={16} color={colors.warning} />
+            </View>
+            <Text style={s.infoCellValue}>{params.estTime ?? "—"}</Text>
+            <Text style={s.infoCellLabel}>Est. Time</Text>
           </View>
-          <View style={s.infoPill}>
-            <MaterialIcons name="payments" size={14} color={colors.success} />
-            <Text style={s.infoPillText}>${params.price ?? "0"}</Text>
+          <View style={s.infoCellSep} />
+          <View style={s.infoCell}>
+            <View style={[s.infoCellIcon, { backgroundColor: "#DCFCE7" }]}>
+              <MaterialIcons name="payments" size={16} color={colors.success} />
+            </View>
+            <Text style={s.infoCellValue}>${params.price ?? "0"}</Text>
+            <Text style={s.infoCellLabel}>Total Price</Text>
           </View>
         </View>
 
         <View style={s.divider} />
 
         {/* Buttons */}
-        <TouchableOpacity
-          style={s.primaryBtn}
-          onPress={handleTrackDelivery}
-          activeOpacity={0.85}
-        >
-          <LinearGradient
-            colors={["#14B8A6", "#06B6D4"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={s.primaryBtnGradient}
+        <View style={s.buttonsContainer}>
+          <TouchableOpacity
+            style={s.primaryBtn}
+            onPress={handleTrackDelivery}
+            activeOpacity={0.85}
           >
-            <MaterialIcons name="local-shipping" size={18} color={colors.white} />
-            <Text style={s.primaryBtnText}>Track Delivery</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={["#14B8A6", "#06B6D4"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={s.primaryBtnGradient}
+            >
+              <MaterialIcons
+                name="local-shipping"
+                size={18}
+                color={colors.white}
+              />
+              <Text style={s.primaryBtnText}>Track Delivery</Text>
+            </LinearGradient>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={s.secondaryBtn}
-          onPress={handleBackToHome}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="home-outline" size={18} color={colors.primary.DEFAULT} />
-          <Text style={s.secondaryBtnText}>Back to Home</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={s.secondaryBtn}
+            onPress={handleBackToHome}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="home-outline"
+              size={18}
+              color={colors.primary.DEFAULT}
+            />
+            <Text style={s.secondaryBtnText}>Back to Home</Text>
+          </TouchableOpacity>
+        </View>
       </Animated.View>
 
       {/* bottom safe area fill */}
@@ -292,6 +338,7 @@ const s = StyleSheet.create({
   },
   // Card
   card: {
+    flex: 1,
     backgroundColor: colors.white,
     borderTopLeftRadius: borderRadius.xxl,
     borderTopRightRadius: borderRadius.xxl,
@@ -305,22 +352,43 @@ const s = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
-  // Route row
-  routeRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  sectionTitle: {
+    fontSize: fontSize.xs,
+    fontWeight: "700",
+    color: colors.text.placeholder,
+    textTransform: "uppercase",
+    letterSpacing: 1,
     marginBottom: spacing.lg,
-    gap: spacing.sm,
   },
-  routePoint: {
-    flex: 1,
-    gap: 4,
+  // Route (vertical)
+  routeContainer: {
+    marginBottom: spacing.lg,
+  },
+  routeStop: {
+    flexDirection: "row",
+    gap: spacing.md,
+  },
+  routeStopIndicator: {
+    alignItems: "center",
+    width: 14,
+    paddingTop: 3,
   },
   routeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginBottom: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  routeConnectorLine: {
+    flex: 1,
+    width: 2,
+    minHeight: 24,
+    backgroundColor: colors.border.DEFAULT,
+    marginVertical: 4,
+  },
+  routeStopInfo: {
+    flex: 1,
+    paddingBottom: spacing.lg,
+    gap: 3,
   },
   routeLabel: {
     fontSize: fontSize.xs,
@@ -335,51 +403,59 @@ const s = StyleSheet.create({
     color: colors.text.primary,
     lineHeight: 20,
   },
-  routeArrow: {
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: spacing.xs,
-  },
-  routeLine: {
-    width: 1,
-    height: 12,
-    backgroundColor: colors.border.DEFAULT,
-  },
-  // Info pills
-  infoRow: {
+  // Info grid
+  infoGrid: {
     flexDirection: "row",
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-    flexWrap: "wrap",
-  },
-  infoPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
     backgroundColor: colors.background,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.border.DEFAULT,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    marginBottom: spacing.lg,
+    overflow: "hidden",
   },
-  infoPillText: {
+  infoCell: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: spacing.md,
+    gap: 4,
+  },
+  infoCellIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 2,
+  },
+  infoCellValue: {
     fontSize: fontSize.md,
-    fontWeight: "600",
-    color: colors.text.secondary,
+    fontWeight: "700",
+    color: colors.text.primary,
+  },
+  infoCellLabel: {
+    fontSize: fontSize.xs,
+    color: colors.text.placeholder,
+    fontWeight: "500",
+  },
+  infoCellSep: {
+    width: 1,
+    backgroundColor: colors.border.DEFAULT,
+    marginVertical: spacing.md,
   },
   divider: {
     height: 1,
     backgroundColor: colors.border.light,
-    marginBottom: spacing.lg,
+  },
+  buttonsContainer: {
+    marginTop: "auto",
+    paddingTop: spacing.lg,
+    gap: spacing.md,
   },
   // Buttons
   primaryBtn: {
     height: 52,
     borderRadius: borderRadius.lg,
     overflow: "hidden",
-    marginBottom: spacing.md,
   },
   primaryBtnGradient: {
     flex: 1,
