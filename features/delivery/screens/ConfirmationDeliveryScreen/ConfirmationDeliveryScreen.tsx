@@ -9,7 +9,6 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
@@ -97,10 +96,8 @@ const PACKAGE_ACCENT: Record<string, string> = {
 export function ConfirmationDeliveryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { height: screenHeight } = useWindowDimensions();
   const mapRef = useRef<MapView>(null);
-  // Card grows with content but never taller than screen minus map visible area
-  const cardMaxHeight = screenHeight - insets.top - 160;
+  const mapHeight = insets.top + 260;
   const orderId = useMemo(
     () => `DRV-${Math.floor(Math.random() * 90000) + 10000}`,
     [],
@@ -122,6 +119,11 @@ export function ConfirmationDeliveryScreen() {
   const [toCoord, setToCoord] = useState<Coord | null>(null);
   const [confirming, setConfirming] = useState(false);
 
+  // Refs so fitMap can always read the latest values regardless of closure timing
+  const fromCoordRef = useRef<Coord | null>(null);
+  const toCoordRef = useRef<Coord | null>(null);
+  const mapReadyRef = useRef(false);
+
   const price = calcPrice(params.packageSize ?? "", params.packageWeight ?? "");
   const estTime = estimateDelivery(
     params.pickupDate ?? "",
@@ -129,22 +131,32 @@ export function ConfirmationDeliveryScreen() {
   );
   const packageTypes: string[] = JSON.parse(params.packageTypes ?? "[]");
 
+  const fitMap = () => {
+    const from = fromCoordRef.current;
+    const to = toCoordRef.current;
+    if (!mapReadyRef.current || !from || !to) return;
+    mapRef.current?.fitToCoordinates([from, to], {
+      edgePadding: { top: insets.top + 16, right: 60, bottom: 60, left: 60 },
+      animated: true,
+    });
+  };
+
+  const handleMapReady = () => {
+    mapReadyRef.current = true;
+    fitMap();
+  };
+
   useEffect(() => {
     (async () => {
       const [from, to] = await Promise.all([
         geocodeAddress(params.from ?? ""),
         geocodeAddress(params.to ?? ""),
       ]);
+      fromCoordRef.current = from;
+      toCoordRef.current = to;
       setFromCoord(from);
       setToCoord(to);
-      if (from && to) {
-        setTimeout(() => {
-          mapRef.current?.fitToCoordinates([from, to], {
-            edgePadding: { top: 80, right: 60, bottom: 60, left: 60 },
-            animated: true,
-          });
-        }, 600);
-      }
+      fitMap();
     })();
   }, []);
 
@@ -168,56 +180,56 @@ export function ConfirmationDeliveryScreen() {
 
   return (
     <View style={s.root}>
-      {/* ── MAP fills entire screen ── */}
-      <MapView
-        ref={mapRef}
-        style={StyleSheet.absoluteFillObject}
-        initialRegion={{
-          latitude: 3.139,
-          longitude: 101.6869,
-          latitudeDelta: 0.1,
-          longitudeDelta: 0.1,
-        }}
-      >
-        {fromCoord && (
-          <Marker coordinate={fromCoord} title="Pickup">
-            <View style={s.markerFrom}>
-              <MaterialIcons name="location-on" size={24} color={colors.white} />
-            </View>
-          </Marker>
-        )}
-        {toCoord && (
-          <Marker coordinate={toCoord} title="Destination">
-            <View style={s.markerTo}>
-              <MaterialIcons name="location-on" size={24} color={colors.white} />
-            </View>
-          </Marker>
-        )}
-        {fromCoord && toCoord && (
-          <Polyline
-            coordinates={[fromCoord, toCoord]}
-            strokeColor={colors.primary.DEFAULT}
-            strokeWidth={3}
-            lineDashPattern={[10, 5]}
-          />
-        )}
-      </MapView>
+      {/* ── MAP — explicit height so fitToCoordinates works reliably ── */}
+      <View style={[s.mapContainer, { height: mapHeight }]}>
+        <MapView
+          ref={mapRef}
+          style={StyleSheet.absoluteFillObject}
+          initialRegion={{
+            latitude: 3.139,
+            longitude: 101.6869,
+            latitudeDelta: 0.1,
+            longitudeDelta: 0.1,
+          }}
+          onMapReady={handleMapReady}
+        >
+          {fromCoord && (
+            <Marker coordinate={fromCoord} title="Pickup">
+              <View style={s.markerFrom}>
+                <MaterialIcons name="location-on" size={24} color={colors.white} />
+              </View>
+            </Marker>
+          )}
+          {toCoord && (
+            <Marker coordinate={toCoord} title="Destination">
+              <View style={s.markerTo}>
+                <MaterialIcons name="location-on" size={24} color={colors.white} />
+              </View>
+            </Marker>
+          )}
+          {fromCoord && toCoord && (
+            <Polyline
+              coordinates={[fromCoord, toCoord]}
+              strokeColor={colors.primary.DEFAULT}
+              strokeWidth={3}
+              lineDashPattern={[10, 5]}
+            />
+          )}
+        </MapView>
 
-      {/* Back button */}
-      <TouchableOpacity
-        style={[s.backBtn, { top: insets.top + spacing.md }]}
-        onPress={() => router.back()}
-      >
-        <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
-      </TouchableOpacity>
+        {/* Back button */}
+        <TouchableOpacity
+          style={[s.backBtn, { top: insets.top + spacing.md }]}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+        </TouchableOpacity>
+      </View>
 
-      {/* Spacer pushes card to the bottom */}
-      <View style={{ flex: 1 }} />
-
-      {/* ── CONTENT CARD — sizes to content, capped at maxHeight ── */}
+      {/* ── CONTENT CARD ── */}
       <ScrollView
-        style={[s.card, { maxHeight: cardMaxHeight }]}
-        contentContainerStyle={s.cardContent}
+        style={s.card}
+        contentContainerStyle={[s.cardContent, { paddingBottom: insets.bottom + 96 }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={s.handle} />
@@ -430,6 +442,11 @@ function InfoItem({
 const s = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: colors.white,
+  },
+  mapContainer: {
+    width: "100%",
+    overflow: "hidden",
   },
   backBtn: {
     position: "absolute",
@@ -468,14 +485,15 @@ const s = StyleSheet.create({
   },
   // Card
   card: {
+    flex: 1,
     backgroundColor: colors.white,
     borderTopLeftRadius: borderRadius.xxl,
     borderTopRightRadius: borderRadius.xxl,
+    marginTop: -24,
   },
   cardContent: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
-    paddingBottom: spacing.xxxl,
   },
   handle: {
     alignSelf: "center",
@@ -561,7 +579,6 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: spacing.sm,
-    marginBottom: spacing.md,
   },
   packageInfo: {
     flex: 1,
