@@ -1,0 +1,1 @@
+export { TermsPrivacyScreen } from './TermsPrivacyScreen';
