@@ -20,8 +20,21 @@ export function LogoutButton({ onPress }: LogoutButtonProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: spacing.lg,
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: spacing.md,
+    marginHorizontal: spacing.lg,
     marginTop: spacing.sm,
+    padding: 14,
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border.DEFAULT,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   iconContainer: {
     width: 40,
@@ -32,7 +45,7 @@ const styles = StyleSheet.create({
     alignItems: "center" as const,
   },
   text: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
     color: colors.error,
   },
