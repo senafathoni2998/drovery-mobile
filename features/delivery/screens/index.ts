@@ -2,3 +2,4 @@ export { DeliveryDetailScreen } from './DeliveryDetailScreen/DeliveryDetailScree
 export { CreateDeliveryScreen } from './CreateDeliveryScreen/CreateDeliveryScreen';
 export { ConfirmationDeliveryScreen } from './ConfirmationDeliveryScreen';
 export { CongratulatoryScreen } from './CongratulatoryScreen';
+export { PriceEstimationScreen } from './PriceEstimationScreen';
