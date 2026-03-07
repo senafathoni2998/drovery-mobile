@@ -1,6 +1,6 @@
 import { commonStyles } from "@/styles/common";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   KeyboardAvoidingView,
@@ -56,6 +56,22 @@ export function CreateDeliveryScreen() {
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
 
+  const params = useLocalSearchParams<{
+    from?: string;
+    to?: string;
+    packageSize?: string;
+    packageWeight?: string;
+    packageTypes?: string;
+  }>();
+
+  const prefill = {
+    from: params.from ?? "",
+    to: params.to ?? "",
+    packageSize: params.packageSize ?? "",
+    packageWeight: params.packageWeight ?? "",
+    packageTypes: params.packageTypes ? (JSON.parse(params.packageTypes) as string[]) : [] as string[],
+  };
+
   const {
     control,
     handleSubmit,
@@ -66,18 +82,47 @@ export function CreateDeliveryScreen() {
     formState: { errors },
   } = useForm<CreateDeliveryFormData>({
     defaultValues: {
-      from: "",
-      to: "",
+      from: prefill.from,
+      to: prefill.to,
       receiver: "",
       packages: "",
-      packageSize: "",
-      packageWeight: "",
+      packageSize: prefill.packageSize,
+      packageWeight: prefill.packageWeight,
       pickupDate: "",
       pickupTime: "",
-      packageTypes: [],
+      packageTypes: prefill.packageTypes,
     },
     mode: "onTouched",
   });
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const formCardY = useRef(0);
+  const sectionY = useRef<Record<string, number>>({
+    location: 0,
+    receiver: 0,
+    packageDetails: 0,
+    packageTypes: 0,
+    pickupSchedule: 0,
+  });
+
+  useEffect(() => {
+    const values = getValues();
+    let targetSection: string | null = null;
+    if (!values.from || !values.to) targetSection = "location";
+    else if (!values.receiver) targetSection = "receiver";
+    else if (!values.packages || !values.packageSize || !values.packageWeight) targetSection = "packageDetails";
+    else if (!values.packageTypes.length) targetSection = "packageTypes";
+    else if (!values.pickupDate || !values.pickupTime) targetSection = "pickupSchedule";
+
+    if (targetSection) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({
+          y: formCardY.current + sectionY.current[targetSection!],
+          animated: true,
+        });
+      }, 400);
+    }
+  }, []);
 
   const selectedSize = watch("packageSize");
 
@@ -160,6 +205,7 @@ export function CreateDeliveryScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
+        ref={scrollViewRef}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -169,8 +215,10 @@ export function CreateDeliveryScreen() {
         <Animated.View
           entering={FadeInDown.delay(100).duration(500)}
           style={styles.formCard}
+          onLayout={(e) => { formCardY.current = e.nativeEvent.layout.y; }}
         >
           {/* Location */}
+          <View onLayout={(e) => { sectionY.current.location = e.nativeEvent.layout.y; }}>
           <FormSection title="Location" icon="location-on">
             <Controller
               control={control}
@@ -208,8 +256,10 @@ export function CreateDeliveryScreen() {
               )}
             />
           </FormSection>
+          </View>
 
           {/* Receiver Info */}
+          <View onLayout={(e) => { sectionY.current.receiver = e.nativeEvent.layout.y; }}>
           <FormSection title="Receiver Information" icon="person">
             <Controller
               control={control}
@@ -229,8 +279,10 @@ export function CreateDeliveryScreen() {
               )}
             />
           </FormSection>
+          </View>
 
           {/* Package Details */}
+          <View onLayout={(e) => { sectionY.current.packageDetails = e.nativeEvent.layout.y; }}>
           <FormSection title="Package Details" icon="inventory-2">
             <Controller
               control={control}
@@ -290,8 +342,10 @@ export function CreateDeliveryScreen() {
               )}
             />
           </FormSection>
+          </View>
 
           {/* Package Types */}
+          <View onLayout={(e) => { sectionY.current.packageTypes = e.nativeEvent.layout.y; }}>
           <FormSection title="Package Type" icon="category">
             <Controller
               control={control}
@@ -321,8 +375,10 @@ export function CreateDeliveryScreen() {
               )}
             />
           </FormSection>
+          </View>
 
           {/* Pickup Schedule */}
+          <View onLayout={(e) => { sectionY.current.pickupSchedule = e.nativeEvent.layout.y; }}>
           <FormSection title="Pickup Schedule" icon="schedule">
             <View style={styles.row}>
               <View style={styles.halfWidth}>
@@ -375,6 +431,8 @@ export function CreateDeliveryScreen() {
               </View>
             </View>
           </FormSection>
+
+          </View>
 
           <SubmitButton onPress={handleSubmit(onSubmit)} loading={loading} />
         </Animated.View>
