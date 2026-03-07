@@ -9,29 +9,8 @@ import { authService } from "../../../auth/services/authService";
 import { spacing, colors, commonStyles } from "../../../../styles/common";
 import { ProfileHeader } from "./components/ProfileHeader";
 import { StatsSection } from "./components/StatsSection";
-import { MenuSections, type MenuItem, type MenuSection } from "./components/MenuSections";
+import { MenuSections, type MenuSection } from "./components/MenuSections";
 import { LogoutButton } from "./components/LogoutButton";
-
-// ==================== DATA ====================
-const MENU_SECTIONS: MenuSection[] = [
-  {
-    title: "Account Settings",
-    items: [
-      { icon: "person", iconType: "Material", title: "Edit Profile", color: colors.primary.DEFAULT },
-      { icon: "location", iconType: "Ion", title: "Delivery Addresses", color: "#F59E0B" },
-      { icon: "notifications", iconType: "Ion", title: "Notifications", color: "#6366F1" },
-      { icon: "payments", iconType: "Material", title: "Payment Methods", color: colors.success },
-    ],
-  },
-  {
-    title: "Support",
-    items: [
-      { icon: "help-circle", iconType: "Ion", title: "Help Center", color: "#8B5CF6" },
-      { icon: "description", iconType: "Material", title: "Terms & Privacy", color: colors.text.muted },
-      { icon: "chatbubble", iconType: "Ion", title: "Contact Us", color: "#EC4899" },
-    ],
-  },
-];
 
 // ==================== COMPONENT ====================
 export function ProfileScreen() {
@@ -39,6 +18,23 @@ export function ProfileScreen() {
   const router = useRouter();
   const userName = "Sena";
   const userEmail = "sena@drovery.com";
+
+  const MENU_SECTIONS: MenuSection[] = [
+    {
+      title: "Account Settings",
+      items: [
+        { icon: "person", iconType: "Material", title: "Edit Profile", color: colors.primary.DEFAULT, onPress: () => router.push("/edit-profile") },
+        { icon: "payments", iconType: "Material", title: "Payment Methods", color: colors.success, onPress: () => router.push("/payment-methods") },
+      ],
+    },
+    {
+      title: "Support",
+      items: [
+        { icon: "help-circle", iconType: "Ion", title: "Help & Support", color: "#8B5CF6", onPress: () => router.push("/help-support") },
+        { icon: "description", iconType: "Material", title: "Terms & Privacy", color: colors.text.muted, onPress: () => router.push("/terms-privacy") },
+      ],
+    },
+  ];
 
   // Handle hardware back button - exit app on profile screen
   React.useEffect(() => {
@@ -55,7 +51,7 @@ export function ProfileScreen() {
   };
 
   const handleEditProfile = () => {
-    // TODO: Implement edit profile navigation
+    router.push("/edit-profile");
   };
 
   return (
