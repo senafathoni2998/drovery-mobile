@@ -37,7 +37,7 @@ export function DeliveryDetailScreen() {
     // TODO: Implement map navigation
   };
   const handleContactSupport = () => {
-    // TODO: Implement contact support
+    router.push("/help-support");
   };
 
   return (
