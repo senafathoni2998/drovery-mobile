@@ -16,16 +16,5 @@ export interface PackageType {
   icon: keyof typeof MaterialIcons.glyphMap;
 }
 
-export interface FormErrors {
-  from?: string;
-  to?: string;
-  receiver?: string;
-  packages?: string;
-  packageSize?: string;
-  packageWeight?: string;
-  pickupDate?: string;
-  pickupTime?: string;
-  packageTypes?: string;
-}
 
 import { MaterialIcons } from "@expo/vector-icons";
