@@ -9,6 +9,7 @@ export interface MenuItem {
   title: string;
   subtitle?: string;
   color: string;
+  onPress?: () => void;
 }
 
 export interface MenuSection {
@@ -22,7 +23,7 @@ interface MenuSectionsProps {
 
 export function MenuSections({ sections }: MenuSectionsProps) {
   const MenuItem = ({ item }: { item: MenuItem }) => (
-    <TouchableOpacity style={styles.menuItem}>
+    <TouchableOpacity style={styles.menuItem} onPress={item.onPress}>
       <View style={[styles.menuIconContainer, { backgroundColor: `${item.color}15` }]}>
         {item.iconType === "Material" ? (
           <MaterialIcons name={item.icon as any} size={22} color={item.color} />
