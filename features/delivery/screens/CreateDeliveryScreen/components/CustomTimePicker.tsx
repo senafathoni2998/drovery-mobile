@@ -1,5 +1,5 @@
+import { borderRadius, colors, fontSize, spacing } from "@/styles/common";
 import React, { useEffect, useRef, useState } from "react";
-import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
 import {
   Modal,
   NativeScrollEvent,
@@ -10,14 +10,18 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { borderRadius, colors, fontSize, spacing } from "@/styles/common";
+import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
 
 const ITEM_H = 52;
 const VISIBLE = 5;
 const PAD = 2; // items above/below the center
 
-const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")); // "01".."12"
-const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")); // "00","05".."55"
+const HOURS = Array.from({ length: 12 }, (_, i) =>
+  String(i + 1).padStart(2, "0"),
+); // "01".."12"
+const MINUTES = Array.from({ length: 12 }, (_, i) =>
+  String(i * 5).padStart(2, "0"),
+); // "00","05".."55"
 const PICKER_H = ITEM_H * VISIBLE;
 
 function parse(value?: string): { h: number; m: number; am: boolean } {
@@ -28,8 +32,8 @@ function parse(value?: string): { h: number; m: number; am: boolean } {
   const minVal = parseInt(match[2]);
   const am = match[3].toUpperCase() === "AM";
   return {
-    h: raw === 12 ? 0 : raw - 1,        // 0-based into HOURS
-    m: Math.round(minVal / 5) % 12,     // 0-based into MINUTES
+    h: raw === 12 ? 0 : raw - 1, // 0-based into HOURS
+    m: Math.round(minVal / 5) % 12, // 0-based into MINUTES
     am,
   };
 }
@@ -41,7 +45,12 @@ interface Props {
   onCancel: () => void;
 }
 
-export function CustomTimePicker({ visible, value, onConfirm, onCancel }: Props) {
+export function CustomTimePicker({
+  visible,
+  value,
+  onConfirm,
+  onCancel,
+}: Props) {
   const init = parse(value);
   const [hIdx, setHIdx] = useState(init.h);
   const [mIdx, setMIdx] = useState(init.m);
@@ -78,7 +87,11 @@ export function CustomTimePicker({ visible, value, onConfirm, onCancel }: Props)
   return (
     <Modal visible={visible} transparent animationType="none">
       <View style={ts.overlay}>
-        <Animated.View entering={SlideInDown} exiting={SlideOutDown} style={ts.sheet}>
+        <Animated.View
+          entering={SlideInDown}
+          exiting={SlideOutDown}
+          style={ts.sheet}
+        >
           {/* Header */}
           <View style={ts.headerBar}>
             <TouchableOpacity onPress={onCancel}>
@@ -92,22 +105,21 @@ export function CustomTimePicker({ visible, value, onConfirm, onCancel }: Props)
 
           {/* Pickers row */}
           <View style={ts.pickerRow}>
-            {/* Selection highlight band (rendered first = behind scrollers) */}
-            <View style={ts.band} pointerEvents="none" />
-
-            <Roller
-              ref={hRef}
-              items={HOURS}
-              onSnap={(e) => snap(e, HOURS.length, setHIdx)}
-            />
-
-            <Text style={ts.colon}>:</Text>
-
-            <Roller
-              ref={mRef}
-              items={MINUTES}
-              onSnap={(e) => snap(e, MINUTES.length, setMIdx)}
-            />
+            {/* Rollers + band scoped together */}
+            <View style={ts.rollersContainer}>
+              <View style={ts.band} pointerEvents="none" />
+              <Roller
+                ref={hRef}
+                items={HOURS}
+                onSnap={(e) => snap(e, HOURS.length, setHIdx)}
+              />
+              <Text style={ts.colon}>:</Text>
+              <Roller
+                ref={mRef}
+                items={MINUTES}
+                onSnap={(e) => snap(e, MINUTES.length, setMIdx)}
+              />
+            </View>
 
             {/* AM / PM toggle */}
             <View style={ts.ampm}>
@@ -117,7 +129,12 @@ export function CustomTimePicker({ visible, value, onConfirm, onCancel }: Props)
                   style={[ts.ampmBtn, isAm === (p === "AM") && ts.ampmActive]}
                   onPress={() => setIsAm(p === "AM")}
                 >
-                  <Text style={[ts.ampmTxt, isAm === (p === "AM") && ts.ampmTxtActive]}>
+                  <Text
+                    style={[
+                      ts.ampmTxt,
+                      isAm === (p === "AM") && ts.ampmTxtActive,
+                    ]}
+                  >
                     {p}
                   </Text>
                 </TouchableOpacity>
@@ -184,17 +201,26 @@ const ts = StyleSheet.create({
     color: colors.text.primary,
   },
   cancel: { fontSize: fontSize.base, color: colors.text.muted },
-  done: { fontSize: fontSize.base, fontWeight: "600", color: colors.primary.DEFAULT },
+  done: {
+    fontSize: fontSize.base,
+    fontWeight: "600",
+    color: colors.primary.DEFAULT,
+  },
   pickerRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: spacing.xl,
+  },
+  rollersContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
     position: "relative",
   },
   band: {
     position: "absolute",
-    left: spacing.xl,
-    right: spacing.xl,
+    left: 0,
+    right: 0,
     top: ITEM_H * PAD,
     height: ITEM_H,
     backgroundColor: "#F0FDFA",
