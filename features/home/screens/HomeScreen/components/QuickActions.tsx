@@ -26,7 +26,7 @@ export function QuickActions({ actions }: QuickActionsProps) {
         // TODO: Implement package tracking
         break;
       case "Price Estimate":
-        // TODO: Implement price estimate
+        router.push("/price-estimation");
         break;
     }
   };
