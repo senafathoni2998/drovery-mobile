@@ -55,6 +55,7 @@ export function LocationPickerModal({ visible, title, onConfirm, onCancel }: Pro
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [reversing, setReversing] = useState(false);
+  const [locatingCurrent, setLocatingCurrent] = useState(false);
 
   // Center map on user's current location when modal opens
   useEffect(() => {
@@ -130,6 +131,28 @@ export function LocationPickerModal({ visible, title, onConfirm, onCancel }: Pro
     );
   };
 
+  const handleUseCurrentLocation = async () => {
+    setLocatingCurrent(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const { latitude, longitude } = loc.coords;
+      setMarker({ lat: latitude, lng: longitude });
+      setResults([]);
+      Keyboard.dismiss();
+      mapRef.current?.animateToRegion(
+        { latitude, longitude, latitudeDelta: 0.01, longitudeDelta: 0.01 },
+        400,
+      );
+      reverseGeocode(latitude, longitude);
+    } catch {
+      // silently fail
+    } finally {
+      setLocatingCurrent(false);
+    }
+  };
+
   const handleSelectResult = (result: SearchResult) => {
     const lat = parseFloat(result.lat);
     const lng = parseFloat(result.lon);
@@ -176,6 +199,23 @@ export function LocationPickerModal({ visible, title, onConfirm, onCancel }: Pro
               </TouchableOpacity>
             )}
           </View>
+
+          {/* Use current location */}
+          <TouchableOpacity
+            style={s.currentLocationBtn}
+            onPress={handleUseCurrentLocation}
+            disabled={locatingCurrent}
+            activeOpacity={0.7}
+          >
+            {locatingCurrent ? (
+              <ActivityIndicator size={14} color={colors.primary.DEFAULT} />
+            ) : (
+              <MaterialIcons name="my-location" size={15} color={colors.primary.DEFAULT} />
+            )}
+            <Text style={s.currentLocationText}>
+              {locatingCurrent ? "Getting location…" : "Use my current location"}
+            </Text>
+          </TouchableOpacity>
 
           {/* Dropdown results */}
           {results.length > 0 && (
@@ -304,6 +344,20 @@ const s = StyleSheet.create({
     flex: 1,
     fontSize: fontSize.base,
     color: colors.text.primary,
+  },
+  currentLocationBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    alignSelf: "flex-start",
+    marginTop: spacing.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.xs,
+  },
+  currentLocationText: {
+    fontSize: fontSize.base,
+    color: colors.primary.DEFAULT,
+    fontWeight: "500",
   },
   dropdown: {
     backgroundColor: colors.white,
