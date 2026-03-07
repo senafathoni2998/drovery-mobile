@@ -15,7 +15,6 @@ import {
 } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { styles as formStyles } from "../CreateDeliveryScreen/CreateDeliveryScreen.styles";
 import {
   FormHeader,
   FormSection,
@@ -25,6 +24,7 @@ import {
   PackageTypeSelector,
   SwapButton,
 } from "../CreateDeliveryScreen/components";
+import { styles as formStyles } from "../CreateDeliveryScreen/CreateDeliveryScreen.styles";
 import type { PackageType } from "../CreateDeliveryScreen/CreateDeliveryScreen.types";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -213,7 +213,10 @@ export function PriceEstimationScreen() {
                   return true;
                 },
               }}
-              render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
+              render={({
+                field: { onChange, onBlur, value },
+                fieldState: { error },
+              }) => (
                 <InputField
                   label="Package Weight"
                   icon="scale"
@@ -275,7 +278,10 @@ export function PriceEstimationScreen() {
                 />
               )}
               {breakdown.typeFee > 0 && (
-                <BreakdownRow label="Type surcharge" value={breakdown.typeFee} />
+                <BreakdownRow
+                  label="Type surcharge"
+                  value={breakdown.typeFee}
+                />
               )}
               <View style={s.totalDivider} />
               <View style={s.totalRow}>
@@ -299,6 +305,18 @@ export function PriceEstimationScreen() {
                 ${breakdown.total.toFixed(2)}
               </Text>
             </LinearGradient>
+            <TouchableOpacity
+              style={s.createButton}
+              onPress={handleCreateDelivery}
+              activeOpacity={0.85}
+            >
+              <MaterialIcons
+                name="local-shipping"
+                size={18}
+                color={colors.white}
+              />
+              <Text style={s.createButtonText}>Create Delivery</Text>
+            </TouchableOpacity>
           </>
         ) : (
           <View style={s.emptyEstimate}>
@@ -312,11 +330,6 @@ export function PriceEstimationScreen() {
             </Text>
           </View>
         )}
-
-        <TouchableOpacity style={s.createButton} onPress={handleCreateDelivery} activeOpacity={0.85}>
-          <MaterialIcons name="local-shipping" size={18} color={colors.white} />
-          <Text style={s.createButtonText}>Create Delivery</Text>
-        </TouchableOpacity>
       </Animated.View>
     </KeyboardAvoidingView>
   );
