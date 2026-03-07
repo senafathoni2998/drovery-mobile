@@ -10,6 +10,7 @@ export interface InputFieldProps {
   value: string;
   error?: string;
   onChangeText: (text: string) => void;
+  onBlur?: () => void;
   editable?: boolean;
   keyboardType?: "default" | "email-address" | "decimal-pad";
 }
@@ -21,6 +22,7 @@ export function InputField({
   value,
   error,
   onChangeText,
+  onBlur,
   editable = true,
   keyboardType = "default",
 }: InputFieldProps) {
@@ -35,6 +37,7 @@ export function InputField({
           placeholderTextColor="#94A3B8"
           value={value}
           onChangeText={onChangeText}
+          onBlur={onBlur}
           editable={editable}
           keyboardType={keyboardType}
         />
