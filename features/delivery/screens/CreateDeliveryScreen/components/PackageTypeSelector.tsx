@@ -89,11 +89,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     position: "relative",
     gap: spacing.xs,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
   },
   checkBadge: {
     position: "absolute",
