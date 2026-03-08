@@ -39,6 +39,12 @@ export function DeliveryDetailScreen() {
   const handleContactSupport = () => {
     router.push("/help-support");
   };
+  const handleAction = (workflowId: string) => {
+    router.push({
+      pathname: "/workflow",
+      params: { workflowId, deliveryId: delivery.id },
+    });
+  };
 
   return (
     <View style={[commonStyles.container, { paddingTop: insets.top }]}>
@@ -164,6 +170,7 @@ export function DeliveryDetailScreen() {
                     step={step}
                     index={index}
                     state={state}
+                    onAction={handleAction}
                   />
                 );
               })}
