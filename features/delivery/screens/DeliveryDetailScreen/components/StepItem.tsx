@@ -1,6 +1,7 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { spacing, borderRadius, colors } from "@/styles/common";
 import type { Step, StepState } from "../DeliveryDetailScreen.types";
 
@@ -8,9 +9,12 @@ interface StepItemProps {
   step: Step;
   index: number;
   state: StepState;
+  onAction?: (workflowId: string) => void;
 }
 
-export function StepItem({ step, index, state }: StepItemProps) {
+export function StepItem({ step, index, state, onAction }: StepItemProps) {
+  const showActionButton = !!step.action && state === "current";
+
   return (
     <View style={styles.item}>
       <View
@@ -41,6 +45,22 @@ export function StepItem({ step, index, state }: StepItemProps) {
           {step.title}
         </Text>
         <Text style={styles.desc}>{step.desc}</Text>
+        {showActionButton && (
+          <TouchableOpacity
+            style={styles.scanButton}
+            onPress={() => onAction?.(step.action!.workflowId)}
+          >
+            <LinearGradient
+              colors={["#14B8A6", "#06B6D4"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.scanButtonGradient}
+            >
+              <Ionicons name="qr-code-outline" size={16} color="#fff" />
+              <Text style={styles.scanButtonText}>{step.action!.label}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -104,5 +124,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.text.light,
     lineHeight: 18,
+  },
+  scanButton: {
+    marginTop: spacing.md,
+    borderRadius: borderRadius.lg,
+    overflow: "hidden",
+    alignSelf: "flex-start" as const,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  scanButtonGradient: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  scanButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#fff",
   },
 });
