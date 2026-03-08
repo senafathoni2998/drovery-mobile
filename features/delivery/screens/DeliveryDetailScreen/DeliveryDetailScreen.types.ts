@@ -16,9 +16,15 @@ export interface Delivery {
   };
 }
 
+export interface StepAction {
+  label: string;
+  workflowId: string;
+}
+
 export interface Step {
   title: string;
   desc: string;
+  action?: StepAction;
 }
 
 export const MOCK_DELIVERY: Delivery = {
@@ -39,21 +45,31 @@ export const MOCK_DELIVERY: Delivery = {
 
 export const STEPS: Step[] = [
   {
-    title: "Pickup scheduled",
+    title: "Pickup Scheduled",
     desc: "The pickup process will start on 25 March 2025, 09:00 AM. A drone will come to the pickup location.",
   },
   {
-    title: "Drone arrived",
-    desc: "Drone arrived at pickup location, package is loaded into the drone storage.",
+    title: "Drone on the Way to Pickup",
+    desc: "A drone has been dispatched and is heading to the pickup location.",
   },
   {
-    title: "In delivery",
+    title: "Drone Arrived at Pickup Location",
+    desc: "Drone arrived at pickup location, package is loaded into the drone storage.",
+    action: { label: "Load Package", workflowId: "load_package" },
+  },
+  {
+    title: "Drone in Delivery",
     desc: "The drone is delivering the package to the drop-off point.",
   },
   {
-    title: "Delivered",
+    title: "Drone Arrived at Drop-off Location",
+    desc: "The drone has arrived at the destination and is preparing to drop off the package.",
+    action: { label: "Unload Package", workflowId: "unload_package" },
+  },
+  {
+    title: "Drone Delivered",
     desc: "The drone has successfully delivered the package to the destination point.",
   },
 ];
 
-export const CURRENT_STEP_INDEX = 1;
+export const CURRENT_STEP_INDEX = 2;
