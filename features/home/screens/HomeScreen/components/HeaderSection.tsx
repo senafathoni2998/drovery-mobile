@@ -1,10 +1,10 @@
+import { borderRadius, colors, commonStyles, spacing } from "@/styles/common";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors, spacing, borderRadius, commonStyles } from "@/styles/common";
 
 interface HeaderSectionProps {
   userName: string;
@@ -41,14 +41,15 @@ export function HeaderSection({ userName }: HeaderSectionProps) {
           <Text style={styles.locationText}>Set location • Jakarta</Text>
         </View>
 
-        <View style={styles.searchBar}>
+        {/* Search bar */}
+        {/* <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color="#94A3B8" />
           <TextInput
             style={styles.searchInput}
             placeholder="Search deliveries, IDs, addresses"
             placeholderTextColor="#94A3B8"
           />
-        </View>
+        </View> */}
 
         <View style={styles.headerBlur} />
       </LinearGradient>
