@@ -34,7 +34,7 @@ export function DeliveryDetailScreen() {
 
   const handleBack = () => router.back();
   const handleTrackMap = () => {
-    // TODO: Implement map navigation
+    router.push("/track-on-map");
   };
   const handleContactSupport = () => {
     router.push("/help-support");
