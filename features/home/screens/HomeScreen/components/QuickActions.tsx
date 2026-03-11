@@ -32,7 +32,7 @@ export function QuickActions({ actions }: QuickActionsProps) {
         setPackageModalVisible(true);
         break;
       case "Track Package":
-        // TODO: Implement package tracking
+        router.push("/track-package");
         break;
       case "Price Estimate":
         router.push("/price-estimation");
