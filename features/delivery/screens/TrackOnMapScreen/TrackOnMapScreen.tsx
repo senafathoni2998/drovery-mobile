@@ -1,8 +1,9 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   StyleSheet,
   Text,
@@ -12,39 +13,47 @@ import {
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { borderRadius, colors, spacing } from "../../../../styles/common";
+import { useDeliveryTracking } from "../../hooks/useDeliveryTracking";
 
-// ==================== MOCK DATA ====================
-const PICKUP_COORD = { latitude: -6.903, longitude: 107.615 };
-const DROPOFF_COORD = { latitude: -6.922, longitude: 107.607 };
-
-const ROUTE_COORDS = [
-  { latitude: -6.903, longitude: 107.615 },
-  { latitude: -6.908, longitude: 107.614 },
-  { latitude: -6.912, longitude: 107.611 },
-  { latitude: -6.916, longitude: 107.609 },
-  { latitude: -6.919, longitude: 107.608 },
-  { latitude: -6.922, longitude: 107.607 },
-];
-
-// Drone is at step index ~2 (midway through route for "Drone Arrived at Pickup")
-const DRONE_COORD = ROUTE_COORDS[2];
-
-const DELIVERY_INFO = {
-  id: "124213152",
-  status: "On Progress",
-  from: "Jl. Padjajaran Raya No. 21",
-  to: "Jl. Otto Iskandar Dinata No.21",
-  eta: "11:00 AM",
-  droneStatus: "On the way to Pickup Location",
-};
+function formatStatus(status: string): string {
+  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 // ==================== MAIN COMPONENT ====================
 export function TrackOnMapScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const params = useLocalSearchParams<{ id?: string }>();
+  const { data: apiDelivery, loading } = useDeliveryTracking(params.id);
   const mapRef = useRef<MapView>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const [, setMapReady] = useState(false);
+
+  // Use real coordinates from API if available, fallback to defaults
+  const PICKUP_COORD = {
+    latitude: apiDelivery?.fromLat ?? -6.903,
+    longitude: apiDelivery?.fromLng ?? 107.615,
+  };
+  const DROPOFF_COORD = {
+    latitude: apiDelivery?.toLat ?? -6.922,
+    longitude: apiDelivery?.toLng ?? 107.607,
+  };
+
+  const tracking = apiDelivery?.tracking;
+  const DRONE_COORD = tracking?.droneLat && tracking?.droneLng
+    ? { latitude: tracking.droneLat, longitude: tracking.droneLng }
+    : { latitude: (PICKUP_COORD.latitude + DROPOFF_COORD.latitude) / 2, longitude: (PICKUP_COORD.longitude + DROPOFF_COORD.longitude) / 2 };
+
+  const ROUTE_COORDS = [PICKUP_COORD, DRONE_COORD, DROPOFF_COORD];
+
+  const DELIVERY_INFO = {
+    id: apiDelivery?.trackingId ?? "",
+    status: apiDelivery ? formatStatus(apiDelivery.status) : "Loading",
+    from: apiDelivery?.fromAddress ?? "",
+    to: apiDelivery?.toAddress ?? "",
+    eta: tracking?.eta ?? apiDelivery?.pickupTime ?? "",
+    droneStatus: tracking?.droneStatus ?? formatStatus(apiDelivery?.status ?? ""),
+  };
 
   const initialRegion = {
     latitude: (PICKUP_COORD.latitude + DROPOFF_COORD.latitude) / 2,

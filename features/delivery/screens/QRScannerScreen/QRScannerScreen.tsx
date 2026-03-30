@@ -3,6 +3,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -10,6 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { borderRadius, colors, spacing } from "../../../../styles/common";
+import { workflowApi } from "../../services/workflowApi";
 
 export function QRScannerScreen() {
   const router = useRouter();
@@ -19,11 +21,23 @@ export function QRScannerScreen() {
 
   const handleBack = () => router.back();
 
-  const handleBarcodeScanned = ({ data }: { data: string }) => {
+  const handleBarcodeScanned = async ({ data }: { data: string }) => {
     if (scanned) return;
     setScanned(true);
-    // TODO: validate the QR data against the delivery before going back
-    router.back();
+    try {
+      const result = await workflowApi.validateQR(data);
+      if (result.valid) {
+        router.back();
+      } else {
+        Alert.alert("Invalid QR", "This QR code is not valid for this delivery.", [
+          { text: "OK", onPress: () => setScanned(false) },
+        ]);
+      }
+    } catch {
+      Alert.alert("Error", "Failed to validate QR code.", [
+        { text: "OK", onPress: () => setScanned(false) },
+      ]);
+    }
   };
 
   if (!permission) {

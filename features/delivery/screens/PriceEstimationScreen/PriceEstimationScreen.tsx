@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -26,6 +27,8 @@ import {
 } from "../CreateDeliveryScreen/components";
 import { styles as formStyles } from "../CreateDeliveryScreen/CreateDeliveryScreen.styles";
 import type { PackageType } from "../CreateDeliveryScreen/CreateDeliveryScreen.types";
+import { pricingApi } from "../../services/pricingApi";
+import type { PriceEstimate } from "@/services/api/types";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -75,9 +78,9 @@ interface PriceEstimationFormData {
   packageTypes: string[];
 }
 
-// ── Price calculator ──────────────────────────────────────────────────────────
+// ── Price calculator (local fallback) ─────────────────────────────────────────
 
-function calcBreakdown(data: PriceEstimationFormData) {
+function calcBreakdownLocal(data: PriceEstimationFormData) {
   const sizeFee = SIZE_BASE_FEE[data.packageSize] ?? 0;
   const kg = parseFloat(data.packageWeight) || 0;
   const weightFee = Math.round(kg * WEIGHT_RATE * 100) / 100;
@@ -106,13 +109,34 @@ export function PriceEstimationScreen() {
   });
 
   const watched = useWatch({ control });
-  const breakdown = calcBreakdown({
+  const [apiBreakdown, setApiBreakdown] = useState<PriceEstimate | null>(null);
+  const [estimating, setEstimating] = useState(false);
+
+  // Use API breakdown if available, otherwise local fallback
+  const breakdown = apiBreakdown ?? calcBreakdownLocal({
     from: watched.from ?? "",
     to: watched.to ?? "",
     packageSize: watched.packageSize ?? "",
     packageWeight: watched.packageWeight ?? "",
     packageTypes: watched.packageTypes ?? [],
   });
+
+  // Fetch price from API when size changes
+  React.useEffect(() => {
+    const size = watched.packageSize;
+    const types = watched.packageTypes;
+    if (!size || !types?.length) {
+      setApiBreakdown(null);
+      return;
+    }
+    const weight = parseFloat(watched.packageWeight ?? "0") || 0;
+    setEstimating(true);
+    pricingApi
+      .estimate({ packageSize: size, packageWeight: weight, packageTypes: types })
+      .then(setApiBreakdown)
+      .catch(() => setApiBreakdown(null))
+      .finally(() => setEstimating(false));
+  }, [watched.packageSize, watched.packageWeight, watched.packageTypes]);
 
   const hasEstimate = !!watched.packageSize;
   const [priceBarHeight, setPriceBarHeight] = useState(80);

@@ -1,8 +1,9 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import React from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,9 +17,8 @@ import {
   commonStyles,
   spacing,
 } from "../../../../styles/common";
+import { useDelivery } from "../../hooks/useDelivery";
 import {
-  CURRENT_STEP_INDEX,
-  MOCK_DELIVERY,
   STEPS,
   type Delivery,
 } from "./DeliveryDetailScreen.types";
@@ -26,15 +26,83 @@ import { FooterActions } from "./components/FooterActions";
 import { InfoItem } from "./components/InfoItem";
 import { StepItem } from "./components/StepItem";
 
+const STATUS_TO_STEP: Record<string, number> = {
+  PENDING: 0,
+  CONFIRMED: 1,
+  DRONE_ASSIGNED: 1,
+  PICKUP_IN_PROGRESS: 2,
+  IN_TRANSIT: 3,
+  DELIVERED: 5,
+  CANCELED: 0,
+};
+
+function formatStatus(status: string): string {
+  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 // ==================== MAIN COMPONENT ====================
 export function DeliveryDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const delivery: Delivery = MOCK_DELIVERY;
+  const params = useLocalSearchParams<{ id?: string }>();
+  const { data: apiDelivery, loading, error } = useDelivery(params.id);
+
+  const delivery: Delivery = apiDelivery
+    ? {
+        id: apiDelivery.trackingId,
+        status: formatStatus(apiDelivery.status),
+        from: apiDelivery.fromAddress,
+        to: apiDelivery.toAddress,
+        sender: "You",
+        receiver: apiDelivery.receiver,
+        pickupAt: `${new Date(apiDelivery.pickupDate).toLocaleDateString()}, ${apiDelivery.pickupTime}`,
+        eta: apiDelivery.estimatedDelivery
+          ? new Date(apiDelivery.estimatedDelivery).toLocaleString()
+          : apiDelivery.pickupTime,
+        pkg: {
+          name: apiDelivery.packages,
+          size: apiDelivery.packageSize,
+          weight: `${apiDelivery.packageWeight} kg`,
+        },
+      }
+    : {
+        id: "",
+        status: "",
+        from: "",
+        to: "",
+        sender: "",
+        receiver: "",
+        pickupAt: "",
+        eta: "",
+        pkg: { name: "", size: "", weight: "" },
+      };
+
+  const CURRENT_STEP_INDEX = apiDelivery ? (STATUS_TO_STEP[apiDelivery.status] ?? 0) : 0;
+
+  if (loading) {
+    return (
+      <View style={[commonStyles.container, { paddingTop: insets.top, justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
+      </View>
+    );
+  }
+
+  if (error || !apiDelivery) {
+    return (
+      <View style={[commonStyles.container, { paddingTop: insets.top, justifyContent: "center", alignItems: "center", padding: 24 }]}>
+        <Text style={{ color: "red", textAlign: "center", marginBottom: 8 }}>
+          {error ?? "Delivery not found"}
+        </Text>
+        <Text style={{ color: "#666", fontSize: 12, textAlign: "center" }}>
+          id: {params.id ?? "undefined"}
+        </Text>
+      </View>
+    );
+  }
 
   const handleBack = () => router.back();
   const handleTrackMap = () => {
-    router.push("/track-on-map");
+    router.push({ pathname: "/track-on-map", params: { id: params.id } });
   };
   const handleContactSupport = () => {
     router.push("/help-support");

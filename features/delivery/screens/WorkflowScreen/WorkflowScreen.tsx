@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { borderRadius, colors, spacing } from "@/styles/common";
 import { WORKFLOWS } from "../../workflow/data";
+import { workflowApi } from "../../services/workflowApi";
 import type { WorkflowStep } from "../../workflow/types";
 import { ChecklistStep } from "./components/ChecklistStep";
 import { DroneButtonStep } from "./components/DroneButtonStep";
@@ -64,7 +65,16 @@ export function WorkflowScreen() {
     return s.type === "checklist" || s.type === "qr_scan";
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Record step completion on the backend
+    if (deliveryId && workflowId) {
+      try {
+        await workflowApi.completeStep(deliveryId, workflowId, step.id);
+      } catch {
+        // Silently continue - step completion is best-effort
+      }
+    }
+
     if (isLast) {
       router.back();
       return;

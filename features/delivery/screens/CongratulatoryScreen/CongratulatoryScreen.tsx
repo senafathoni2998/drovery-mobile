@@ -28,6 +28,7 @@ export function CongratulatoryScreen() {
   const { height: screenHeight } = useWindowDimensions();
 
   const params = useLocalSearchParams<{
+    deliveryId: string;
     orderId: string;
     from: string;
     to: string;
@@ -72,7 +73,7 @@ export function CongratulatoryScreen() {
 
   const handleTrackDelivery = () => {
     router.dismissAll();
-    setTimeout(() => router.push("/delivery-detail"), 50);
+    setTimeout(() => router.push({ pathname: "/delivery-detail", params: { id: params.deliveryId } }), 50);
   };
 
   const handleBackToHome = () => {

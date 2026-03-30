@@ -3,6 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,37 +19,18 @@ import {
   commonStyles,
   spacing,
 } from "../../../../styles/common";
+import { useActiveDeliveries } from "@/features/home/hooks/useActiveDeliveries";
+import { useTrackDelivery } from "../../hooks/useTrackDelivery";
 
-// ==================== MOCK DATA ====================
-const RECENT_TRACKS = [
-  {
-    id: "124213152",
-    pkg: "Aspirin (Healthcare)",
-    from: "Jl. Padjajaran Raya No. 21",
-    to: "Jl. Otto Iskandar Dinata No.21",
-    status: "On Progress",
-    statusColor: "#0D9488",
-    statusBg: "#F0FDFA",
-  },
-  {
-    id: "983741023",
-    pkg: "Electronics Package",
-    from: "Jl. Sudirman No. 5",
-    to: "Jl. Gatot Subroto No. 12",
-    status: "Delivered",
-    statusColor: "#047857",
-    statusBg: "#ECFDF5",
-  },
-  {
-    id: "567812390",
-    pkg: "Document (Legal)",
-    from: "Jl. Diponegoro No. 88",
-    to: "Jl. Ahmad Yani No. 33",
-    status: "Pickup Scheduled",
-    statusColor: "#0369A1",
-    statusBg: "#E0F2FE",
-  },
-];
+const STATUS_STYLE: Record<string, { color: string; bg: string; label: string }> = {
+  PENDING: { color: "#0369A1", bg: "#E0F2FE", label: "Pending" },
+  CONFIRMED: { color: "#0369A1", bg: "#E0F2FE", label: "Confirmed" },
+  DRONE_ASSIGNED: { color: "#0D9488", bg: "#F0FDFA", label: "Drone Assigned" },
+  PICKUP_IN_PROGRESS: { color: "#0D9488", bg: "#F0FDFA", label: "Pickup In Progress" },
+  IN_TRANSIT: { color: "#0D9488", bg: "#F0FDFA", label: "In Transit" },
+  DELIVERED: { color: "#047857", bg: "#ECFDF5", label: "Delivered" },
+  CANCELED: { color: "#B91C1C", bg: "#FEF2F2", label: "Canceled" },
+};
 
 // ==================== MAIN COMPONENT ====================
 export function TrackPackageScreen() {
@@ -56,14 +38,35 @@ export function TrackPackageScreen() {
   const router = useRouter();
   const [trackingId, setTrackingId] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const { data: recentDeliveries } = useActiveDeliveries();
+  const { track } = useTrackDelivery();
 
-  const handleTrack = () => {
+  const RECENT_TRACKS = recentDeliveries.map((d) => {
+    const style = STATUS_STYLE[d.status] ?? STATUS_STYLE.PENDING;
+    return {
+      id: d.trackingId,
+      dbId: d.id,
+      pkg: d.packages,
+      from: d.fromAddress,
+      to: d.toAddress,
+      status: style.label,
+      statusColor: style.color,
+      statusBg: style.bg,
+    };
+  });
+
+  const handleTrack = async () => {
     if (!trackingId.trim()) return;
-    router.push("/delivery-detail");
+    const result = await track(trackingId.trim());
+    if (result) {
+      router.push({ pathname: "/delivery-detail", params: { id: result.id } });
+    } else {
+      Alert.alert("Not Found", "No delivery found with that tracking ID.");
+    }
   };
 
-  const handleRecentTrack = () => {
-    router.push("/delivery-detail");
+  const handleRecentTrack = (dbId: string) => {
+    router.push({ pathname: "/delivery-detail", params: { id: dbId } });
   };
 
   const handleScanQR = () => {
@@ -168,7 +171,7 @@ export function TrackPackageScreen() {
               <Animated.View key={item.id} entering={FadeInDown.delay(250 + index * 60).springify()}>
                 <TouchableOpacity
                   style={styles.recentCard}
-                  onPress={handleRecentTrack}
+                  onPress={() => handleRecentTrack(item.dbId)}
                   activeOpacity={0.85}
                 >
                   <View style={styles.recentCardLeft}>

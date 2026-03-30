@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,6 +15,8 @@ import {
 import MapView, { Marker, Polyline } from "react-native-maps";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { deliveryApi } from "../../services/deliveryApi";
+import { pricingApi } from "../../services/pricingApi";
 
 // ==================== HELPERS ====================
 
@@ -124,7 +127,22 @@ export function ConfirmationDeliveryScreen() {
   const toCoordRef = useRef<Coord | null>(null);
   const mapReadyRef = useRef(false);
 
-  const price = calcPrice(params.packageSize ?? "", params.packageWeight ?? "");
+  const [price, setPrice] = useState(calcPrice(params.packageSize ?? "", params.packageWeight ?? ""));
+
+  // Fetch price from API
+  useEffect(() => {
+    const types: string[] = JSON.parse(params.packageTypes ?? "[]");
+    if (params.packageSize && types.length) {
+      pricingApi
+        .estimate({
+          packageSize: params.packageSize,
+          packageWeight: parseFloat(params.packageWeight ?? "0") || 0,
+          packageTypes: types,
+        })
+        .then((res) => setPrice(res.total))
+        .catch(() => {});
+    }
+  }, []);
   const estTime = estimateDelivery(
     params.pickupDate ?? "",
     params.pickupTime ?? "",
@@ -160,22 +178,42 @@ export function ConfirmationDeliveryScreen() {
     })();
   }, []);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setConfirming(true);
-    setTimeout(() => {
-      setConfirming(false);
+    try {
+      const packageTypes: string[] = JSON.parse(params.packageTypes ?? "[]");
+      const delivery = await deliveryApi.create({
+        fromAddress: params.from ?? "",
+        toAddress: params.to ?? "",
+        receiver: params.receiver ?? "",
+        packages: params.packages ?? "",
+        packageSize: params.packageSize ?? "",
+        packageWeight: parseFloat(params.packageWeight ?? "0") || 0,
+        packageTypes,
+        pickupDate: params.pickupDate ?? new Date().toISOString(),
+        pickupTime: params.pickupTime ?? "",
+        fromLat: fromCoord?.latitude,
+        fromLng: fromCoord?.longitude,
+        toLat: toCoord?.latitude,
+        toLng: toCoord?.longitude,
+      });
       router.push({
         pathname: "/delivery-congratulations",
         params: {
-          orderId,
+          deliveryId: delivery.id,
+          orderId: delivery.trackingId,
           from: params.from,
           to: params.to,
           pickupDate: params.pickupDate,
           estTime,
-          price: String(price),
+          price: String(delivery.estimatedPrice ?? price),
         },
       });
-    }, 1200);
+    } catch (err) {
+      Alert.alert("Error", err instanceof Error ? err.message : "Failed to create delivery");
+    } finally {
+      setConfirming(false);
+    }
   };
 
   return (
