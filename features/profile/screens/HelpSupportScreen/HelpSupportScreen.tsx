@@ -14,40 +14,17 @@ import {
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFAQ } from "@/features/profile/hooks/useFAQ";
 
-// ── Data ──────────────────────────────────────────────────────────────────────
+// ── Fallback FAQ data (used while loading from API) ──────────────────────────
 
-const FAQS = [
-  {
-    question: "How do I track my delivery?",
-    answer:
-      "Go to the Delivery tab and tap on your active order. You'll see real-time tracking on the map with the driver's location.",
-  },
-  {
-    question: "How is the delivery price calculated?",
-    answer:
-      "Pricing is based on package size, weight, type, and a base service fee. You can use the Price Estimate tool on the home screen before placing an order.",
-  },
-  {
-    question: "Can I cancel an order?",
-    answer:
-      "You can cancel an order before a driver is assigned. Once a driver accepts the order, cancellation may incur a small fee.",
-  },
-  {
-    question: "What package sizes are available?",
-    answer:
-      "We support Small (up to 0.5 kg), Medium (up to 1.5 kg), Large (up to 3 kg), and XL (up to 5 kg) packages.",
-  },
-  {
-    question: "How do I change my default address?",
-    answer:
-      'Go to Profile → Edit Profile and update the Default Address field. This address will be pre-filled in your future deliveries.',
-  },
-  {
-    question: "Is my payment information secure?",
-    answer:
-      "Yes. All card data is encrypted and we never store your full card number. Only the last 4 digits are retained for display.",
-  },
+const FALLBACK_FAQS = [
+  { question: "How do I track my delivery?", answer: "Go to the Delivery tab and tap on your active order." },
+  { question: "How is the delivery price calculated?", answer: "Pricing is based on package size, weight, type, and a base service fee." },
+  { question: "Can I cancel an order?", answer: "You can cancel before a drone is assigned." },
+  { question: "What package sizes are available?", answer: "Small (0.5 kg), Medium (1.5 kg), Large (3 kg), XL (5 kg)." },
+  { question: "How do I change my default address?", answer: "Go to Profile → Edit Profile and update the Default Address field." },
+  { question: "Is my payment information secure?", answer: "Yes. All card data is encrypted via Stripe." },
 ];
 
 const CONTACT_CHANNELS = [
@@ -84,6 +61,9 @@ export function HelpSupportScreen() {
   const insets = useSafeAreaInsets();
   const [expanded, setExpanded] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+  const { data: apiFaqs } = useFAQ();
+
+  const FAQS = apiFaqs.length > 0 ? apiFaqs : FALLBACK_FAQS;
 
   const filtered = FAQS.filter(
     (f) =>

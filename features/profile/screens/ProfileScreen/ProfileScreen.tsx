@@ -5,7 +5,7 @@ import { ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BackHandler } from "react-native";
 import { useRouter } from "expo-router";
-import { authService } from "../../../auth/services/authService";
+import { useAuth } from "@/contexts/AuthContext";
 import { spacing, colors, commonStyles } from "../../../../styles/common";
 import { ProfileHeader } from "./components/ProfileHeader";
 import { StatsSection } from "./components/StatsSection";
@@ -16,8 +16,9 @@ import { LogoutButton } from "./components/LogoutButton";
 export function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const userName = "Sena";
-  const userEmail = "sena@drovery.com";
+  const { user, logout: authLogout } = useAuth();
+  const userName = user?.name ?? "User";
+  const userEmail = user?.email ?? "";
 
   const MENU_SECTIONS: MenuSection[] = [
     {
@@ -45,8 +46,8 @@ export function ProfileScreen() {
     return () => subscription.remove();
   }, []);
 
-  const handleLogout = () => {
-    authService.logout();
+  const handleLogout = async () => {
+    await authLogout();
     router.replace("/login");
   };
 

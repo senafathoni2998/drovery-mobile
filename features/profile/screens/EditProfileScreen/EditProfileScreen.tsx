@@ -2,9 +2,11 @@ import { borderRadius, colors, fontSize, spacing } from "@/styles/common";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -16,6 +18,8 @@ import {
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@/contexts/AuthContext";
+import { profileApi } from "@/features/profile/services/profileApi";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -32,6 +36,8 @@ interface EditProfileFormData {
 export function EditProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user, refreshUser } = useAuth();
+  const [saving, setSaving] = useState(false);
 
   const {
     control,
@@ -39,19 +45,31 @@ export function EditProfileScreen() {
     formState: { errors, isDirty },
   } = useForm<EditProfileFormData>({
     defaultValues: {
-      fullName: "Sena",
-      email: "sena@drovery.com",
-      phone: "+62 812 3456 7890",
-      address: "Jalan Ahmad Yani 1 No. 77 RT 12 RW 13, Tanjung Duren, Jakarta",
-      bio: "",
+      fullName: user?.name ?? "",
+      email: user?.email ?? "",
+      phone: user?.phone ?? "",
+      address: user?.address ?? "",
+      bio: user?.bio ?? "",
     },
     mode: "onTouched",
   });
 
-  const onSubmit = (data: EditProfileFormData) => {
-    // TODO: call profile update API
-    console.log("Profile updated:", data);
-    router.back();
+  const onSubmit = async (data: EditProfileFormData) => {
+    setSaving(true);
+    try {
+      await profileApi.updateMe({
+        name: data.fullName,
+        phone: data.phone,
+        address: data.address,
+        bio: data.bio,
+      });
+      await refreshUser();
+      router.back();
+    } catch (err) {
+      Alert.alert("Error", err instanceof Error ? err.message : "Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -201,12 +219,19 @@ export function EditProfileScreen() {
         {/* ── Save button ── */}
         <Animated.View entering={FadeInDown.delay(200).duration(400)}>
           <TouchableOpacity
-            style={[s.saveButton, !isDirty && s.saveButtonDisabled]}
+            style={[s.saveButton, (!isDirty || saving) && s.saveButtonDisabled]}
             onPress={handleSubmit(onSubmit)}
             activeOpacity={0.85}
+            disabled={saving}
           >
-            <MaterialIcons name="check" size={20} color={colors.white} />
-            <Text style={s.saveButtonText}>Save Changes</Text>
+            {saving ? (
+              <ActivityIndicator color={colors.white} />
+            ) : (
+              <>
+                <MaterialIcons name="check" size={20} color={colors.white} />
+                <Text style={s.saveButtonText}>Save Changes</Text>
+              </>
+            )}
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>

@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Modal,
   ScrollView,
@@ -15,6 +16,8 @@ import {
 } from "react-native";
 import Animated, { FadeInDown, FadeInRight } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { usePaymentMethods } from "@/features/profile/hooks/usePaymentMethods";
+import { paymentApi } from "@/features/profile/services/paymentApi";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -69,11 +72,16 @@ function formatExpiry(value: string) {
 export function PaymentMethodsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { data: apiMethods, loading, remove, setDefault, refetch } = usePaymentMethods();
 
-  const [methods, setMethods] = useState<PaymentMethod[]>([
-    { id: "1", network: "visa", last4: "4242", holderName: "Sena", expiry: "12/26", isDefault: true },
-    { id: "2", network: "mastercard", last4: "5353", holderName: "Sena", expiry: "08/25", isDefault: false },
-  ]);
+  const methods: PaymentMethod[] = apiMethods.map((m) => ({
+    id: m.id,
+    network: (m.network as CardNetwork) || "other",
+    last4: m.last4,
+    holderName: m.holderName,
+    expiry: m.expiry,
+    isDefault: m.isDefault,
+  }));
 
   const [showModal, setShowModal] = useState(false);
   const [cardNumber, setCardNumber] = useState("");
@@ -81,10 +89,12 @@ export function PaymentMethodsScreen() {
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
 
-  const handleSetDefault = (id: string) => {
-    setMethods((prev) =>
-      prev.map((m) => ({ ...m, isDefault: m.id === id }))
-    );
+  const handleSetDefault = async (id: string) => {
+    try {
+      await setDefault(id);
+    } catch {
+      Alert.alert("Error", "Failed to set default card");
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -93,39 +103,39 @@ export function PaymentMethodsScreen() {
       {
         text: "Remove",
         style: "destructive",
-        onPress: () =>
-          setMethods((prev) => {
-            const filtered = prev.filter((m) => m.id !== id);
-            // if deleted card was default, set first remaining as default
-            if (filtered.length > 0 && !filtered.some((m) => m.isDefault)) {
-              filtered[0].isDefault = true;
-            }
-            return filtered;
-          }),
+        onPress: async () => {
+          try {
+            await remove(id);
+          } catch {
+            Alert.alert("Error", "Failed to remove card");
+          }
+        },
       },
     ]);
   };
 
-  const handleAddCard = () => {
+  const handleAddCard = async () => {
     const digits = cardNumber.replace(/\s/g, "");
     if (digits.length < 16 || !holderName.trim() || expiry.length < 5 || cvv.length < 3) {
       Alert.alert("Incomplete", "Please fill in all card details correctly.");
       return;
     }
-    const newMethod: PaymentMethod = {
-      id: Date.now().toString(),
-      network: detectNetwork(digits),
-      last4: digits.slice(-4),
-      holderName: holderName.trim(),
-      expiry,
-      isDefault: methods.length === 0,
-    };
-    setMethods((prev) => [...prev, newMethod]);
-    setShowModal(false);
-    setCardNumber("");
-    setHolderName("");
-    setExpiry("");
-    setCvv("");
+    try {
+      await paymentApi.add({
+        network: detectNetwork(digits),
+        last4: digits.slice(-4),
+        holderName: holderName.trim(),
+        expiry,
+      });
+      setShowModal(false);
+      setCardNumber("");
+      setHolderName("");
+      setExpiry("");
+      setCvv("");
+      refetch();
+    } catch (err: any) {
+      Alert.alert("Error", err.message ?? "Failed to add card");
+    }
   };
 
   return (

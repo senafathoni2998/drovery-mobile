@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { spacing, borderRadius, colors } from "@/styles/common";
+import { useUserStats } from "@/features/profile/hooks/useUserStats";
 
 interface StatCardProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -11,10 +12,12 @@ interface StatCardProps {
 }
 
 export function StatsSection() {
+  const { data: stats } = useUserStats();
+
   return (
     <View style={styles.container}>
-      <StatCard icon="cube" iconColor={colors.primary.DEFAULT} label="Total Orders" value="24" />
-      <StatCard icon="checkmark-circle" iconColor={colors.success} label="Completed" value="22" />
+      <StatCard icon="cube" iconColor={colors.primary.DEFAULT} label="Total Orders" value={String(stats.total)} />
+      <StatCard icon="checkmark-circle" iconColor={colors.success} label="Completed" value={String(stats.completed)} />
     </View>
   );
 }
