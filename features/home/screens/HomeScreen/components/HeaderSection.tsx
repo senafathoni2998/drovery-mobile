@@ -1,10 +1,12 @@
 import { borderRadius, colors, commonStyles, spacing } from "@/styles/common";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useUnreadCount } from "@/features/notifications/hooks/useUnreadCount";
 
 interface HeaderSectionProps {
   userName: string;
@@ -12,6 +14,8 @@ interface HeaderSectionProps {
 
 export function HeaderSection({ userName }: HeaderSectionProps) {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { count: unreadCount } = useUnreadCount();
 
   return (
     <Animated.View entering={FadeIn.duration(500).springify()}>
@@ -31,8 +35,18 @@ export function HeaderSection({ userName }: HeaderSectionProps) {
               <Text style={styles.headerName}>{userName}</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.notificationButton}>
+          <TouchableOpacity
+            style={styles.notificationButton}
+            onPress={() => router.push("/notifications")}
+          >
             <Ionicons name="notifications-outline" size={24} color="#fff" />
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -92,6 +106,24 @@ const styles = StyleSheet.create({
   },
   notificationButton: {
     padding: spacing.xs,
+    position: "relative" as const,
+  },
+  badge: {
+    position: "absolute" as const,
+    top: 0,
+    right: 0,
+    backgroundColor: "#EF4444",
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    fontSize: 9,
+    fontWeight: "700" as const,
+    color: "#fff",
   },
   locationBar: {
     flexDirection: "row" as const,

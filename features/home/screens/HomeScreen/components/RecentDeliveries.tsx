@@ -17,7 +17,7 @@ export function RecentDeliveries({ items }: RecentDeliveriesProps) {
   const RecentCard = ({ item }: { item: RecentItem }) => (
     <TouchableOpacity
       style={styles.recentCard}
-      onPress={() => router.push("/delivery-detail")}
+      onPress={() => router.push({ pathname: "/delivery-detail", params: { id: item.deliveryId } })}
     >
       <View style={styles.recentIconContainer}>
         <MaterialIcons name="inventory-2" size={20} color={colors.text.light} />

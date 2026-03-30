@@ -1,7 +1,10 @@
-import { useRouter } from "expo-router";
-import React from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback } from "react";
 import { BackHandler, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@/contexts/AuthContext";
+import { useActiveDeliveries } from "../../hooks/useActiveDeliveries";
+import { useRecentDeliveries } from "../../hooks/useRecentDeliveries";
 import { commonStyles, spacing } from "../../../../styles/common";
 import { ActiveDeliveries } from "./components/ActiveDeliveries";
 import { HeaderSection } from "./components/HeaderSection";
@@ -21,34 +24,53 @@ const quickActions: QuickAction[] = [
   { label: "Price Estimate", icon: "payments", tone: ["#F59E0B", "#F97316"] },
 ] as const;
 
-const activeDeliveries: Delivery[] = [
-  {
-    id: "11324572",
-    title: "Hamburger & Fries",
-    status: "In Progress",
-    progress: 45,
-    eta: "11:00 AM",
-  },
-  {
-    id: "11324578",
-    title: "Protein Shakes",
-    status: "Picked up",
-    progress: 20,
-    eta: "Today",
-  },
-];
+function getStatusProgress(status: string): number {
+  const map: Record<string, number> = {
+    PENDING: 10,
+    CONFIRMED: 20,
+    DRONE_ASSIGNED: 35,
+    PICKUP_IN_PROGRESS: 50,
+    IN_TRANSIT: 75,
+    DELIVERED: 100,
+    CANCELED: 0,
+  };
+  return map[status] ?? 0;
+}
 
-const recentDeliveries: RecentItem[] = [
-  { id: "11324573", title: "Aspirin (Healthcare)", sub: "Delivered 10:42" },
-  { id: "11324574", title: "Fresh Vegetables", sub: "Delivered Yesterday" },
-  { id: "11324577", title: "Books & Stationery", sub: "Delivered 2d ago" },
-];
+function formatStatus(status: string): string {
+  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 // ==================== COMPONENT ====================
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const userName = "Sena";
+  const { user } = useAuth();
+  const userName = user?.name ?? "User";
+  const { data: activeData, refetch: refetchActive } = useActiveDeliveries();
+  const { data: recentData, refetch: refetchRecent } = useRecentDeliveries();
+
+  // Reload data every time this tab gets focus
+  useFocusEffect(useCallback(() => {
+    refetchActive();
+    refetchRecent();
+  }, [refetchActive, refetchRecent]));
+
+  const activeDeliveries: Delivery[] = activeData.map((d) => ({
+    id: d.trackingId,
+    deliveryId: d.id,
+    title: d.packages,
+    status: formatStatus(d.status),
+    progress: getStatusProgress(d.status),
+    eta: d.pickupTime || "Pending",
+  }));
+
+  const recentDeliveries: RecentItem[] = recentData.map((d) => ({
+    id: d.trackingId,
+    deliveryId: d.id,
+    title: d.packages,
+    sub: `Delivered ${new Date(d.updatedAt).toLocaleDateString()}`,
+  }));
 
   // Handle hardware back button - exit app on home screen (root tab)
   React.useEffect(() => {

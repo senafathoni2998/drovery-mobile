@@ -18,7 +18,7 @@ export function ActiveDeliveries({ deliveries }: ActiveDeliveriesProps) {
   const DeliveryCard = ({ delivery }: { delivery: Delivery }) => (
     <TouchableOpacity
       style={styles.deliveryCard}
-      onPress={() => router.push("/delivery-detail")}
+      onPress={() => router.push({ pathname: "/delivery-detail", params: { id: delivery.deliveryId } })}
     >
       <View style={styles.deliveryCardHeader}>
         <View style={styles.deliveryIconContainer}>

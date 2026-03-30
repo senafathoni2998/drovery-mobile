@@ -1,7 +1,8 @@
 import { MaterialIcons } from "@expo/vector-icons";
 
 export interface Delivery {
-  id: string;
+  id: string;         // trackingId — displayed to user
+  deliveryId: string; // database UUID — used for API/navigation
   title: string;
   status: string;
   progress: number;
@@ -9,7 +10,8 @@ export interface Delivery {
 }
 
 export interface RecentItem {
-  id: string;
+  id: string;         // trackingId — displayed to user
+  deliveryId: string; // database UUID — used for API/navigation
   title: string;
   sub: string;
 }
