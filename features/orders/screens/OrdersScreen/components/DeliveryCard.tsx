@@ -14,7 +14,7 @@ export function DeliveryCard({ item }: DeliveryCardProps) {
   const router = useRouter();
 
   const handlePress = () => {
-    router.push("/delivery-detail");
+    router.push({ pathname: "/delivery-detail", params: { id: item.deliveryId } });
   };
 
   return (

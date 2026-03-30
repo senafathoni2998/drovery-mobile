@@ -1,17 +1,18 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import React, { useMemo, useState, useEffect } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { useFocusEffect, useRouter, useLocalSearchParams } from "expo-router";
+import React, { useState, useEffect, useCallback } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { commonStyles, spacing } from "../../../../styles/common";
+import { commonStyles, colors, spacing } from "../../../../styles/common";
+import { useDeliveries } from "../../hooks/useDeliveries";
 import { DeliveryCard } from "./components/DeliveryCard";
 import { EmptyState } from "./components/EmptyState";
 import { OrdersHeader } from "./components/OrdersHeader";
 import { Tabs } from "./components/Tabs";
 import {
-  MOCK_ITEMS,
   TABS,
+  type DeliveryItem,
   type DeliveryStatus,
   type SortOption,
 } from "./OrdersScreen.types";
@@ -35,22 +36,27 @@ export function OrdersScreen() {
   const [sortBy, setSortBy] = useState<SortOption>("recent");
   const [sortVisible, setSortVisible] = useState(false);
 
-  // Filter and sort logic
-  const filteredItems = useMemo(() => {
-    const base = MOCK_ITEMS.filter((i) => i.status === activeTab);
-    const q = query.trim().toLowerCase();
-    const searched = q
-      ? base.filter(
-          (i) => i.title.toLowerCase().includes(q) || i.id.includes(q),
-        )
-      : base;
-    const sorted = [...searched].sort((a, b) => {
-      if (sortBy === "title") return a.title.localeCompare(b.title);
-      if (sortBy === "status") return a.status.localeCompare(b.status);
-      return 0;
-    });
-    return sorted;
-  }, [activeTab, query, sortBy]);
+  const { items, loading, refetch } = useDeliveries({
+    status: activeTab,
+    q: query || undefined,
+    sort: sortBy,
+  });
+
+  // Reload data when tab gets focus
+  useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
+
+  const filteredItems: DeliveryItem[] = items.map((d) => ({
+    id: d.trackingId,
+    deliveryId: d.id,
+    title: d.packages,
+    status: activeTab,
+    subtitle:
+      d.status === "DELIVERED"
+        ? `Delivered ${new Date(d.updatedAt).toLocaleDateString()}`
+        : d.status === "CANCELED"
+          ? "Canceled"
+          : `ETA: ${d.pickupTime || "Pending"}`,
+  }));
 
   // Handlers
   const handleSortSelect = (option: string) => {
@@ -91,7 +97,9 @@ export function OrdersScreen() {
           entering={FadeInDown.delay(200).duration(500).springify()}
           style={styles.listContainer}
         >
-          {filteredItems.length > 0 ? (
+          {loading ? (
+            <ActivityIndicator size="large" color={colors.primary.DEFAULT} style={{ marginTop: 40 }} />
+          ) : filteredItems.length > 0 ? (
             filteredItems.map((item) => (
               <DeliveryCard key={item.id} item={item} />
             ))
