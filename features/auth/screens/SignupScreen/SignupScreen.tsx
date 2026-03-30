@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { authService, SignupCredentials } from "../../../auth/services/authService";
+import { useAuth } from "@/contexts/AuthContext";
 import { styles } from "../LoginScreen/LoginScreen.styles";
 import { SignupHeroCard } from "./components/SignupHeroCard";
 import { signupStyles } from "./SignupScreen.styles";
@@ -66,6 +66,7 @@ const validationRules = {
 export function SignupScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { signup } = useAuth();
 
   // State
   const [showPassword, setShowPassword] = React.useState(false);
@@ -127,28 +128,14 @@ export function SignupScreen() {
     if (!validate()) return;
 
     setLoading(true);
-
-    try {
-      const credentials: SignupCredentials = {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        password: formData.password,
-        confirmPassword: formData.confirmPassword,
-      };
-
-      const response = await authService.signup(credentials);
-
-      if (response.success && response.token) {
-        Alert.alert("Success", "Account created successfully!", [
-          { text: "OK", onPress: () => router.replace("/(tabs)") },
-        ]);
-      } else {
-        Alert.alert("Signup Failed", response.error || "Please try again");
-      }
-    } catch (error) {
-      Alert.alert("Error", "An unexpected error occurred");
-    } finally {
-      setLoading(false);
+    const result = await signup(formData.name.trim(), formData.email.trim(), formData.password);
+    setLoading(false);
+    if (result.success) {
+      Alert.alert("Success", "Account created successfully!", [
+        { text: "OK", onPress: () => router.replace("/(tabs)") },
+      ]);
+    } else {
+      Alert.alert("Signup Failed", result.error || "Please try again");
     }
   };
 

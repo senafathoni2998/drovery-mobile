@@ -19,6 +19,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@/contexts/AuthContext";
 import { styles, colors } from "./LoginScreen.styles";
 import { HeroCard } from "./components/HeroCard";
 import { FormCard } from "./components/FormCard";
@@ -58,6 +59,7 @@ const validationRules = {
 export function LoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { login } = useAuth();
 
   // State
   const [showPassword, setShowPassword] = useState(false);
@@ -104,12 +106,13 @@ export function LoginScreen() {
     if (!validate()) return;
 
     setLoading(true);
-
-    // TODO: Connect to your auth API here
-    setTimeout(() => {
-      setLoading(false);
+    const result = await login(formData.email.trim(), formData.password);
+    setLoading(false);
+    if (result.success) {
       router.replace("/(tabs)");
-    }, 500);
+    } else {
+      setErrors({ email: result.error || "Login failed" });
+    }
   };
 
   const goToSignup = () => router.push("/signup");
