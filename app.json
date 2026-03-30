@@ -49,7 +49,8 @@
         {
           "locationWhenInUsePermission": "Allow Drovery to access your location to set pickup and delivery points."
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
