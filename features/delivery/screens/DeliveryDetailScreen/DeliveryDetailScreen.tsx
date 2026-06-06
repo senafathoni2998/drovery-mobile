@@ -41,6 +41,14 @@ const STATUS_TO_STEP: Record<string, number> = {
 // Mirrors the backend: only these statuses can be canceled.
 const CANCELABLE_STATUSES = ["PENDING", "CONFIRMED"];
 
+const PAYMENT_LABEL: Record<string, string> = {
+  PENDING: "Pending",
+  PROCESSING: "Processing",
+  COMPLETED: "Paid",
+  FAILED: "Failed",
+  REFUNDED: "Refunded",
+};
+
 function formatStatus(status: string): string {
   return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -117,6 +125,16 @@ export function DeliveryDetailScreen() {
       };
 
   const CURRENT_STEP_INDEX = apiDelivery ? (STATUS_TO_STEP[apiDelivery.status] ?? 0) : 0;
+
+  const payment = apiDelivery?.payment ?? null;
+  const paymentLabel = payment ? PAYMENT_LABEL[payment.status] ?? payment.status : "Pending";
+  const paymentAmount = payment?.amount ?? apiDelivery?.estimatedPrice ?? 0;
+  const paymentColor =
+    payment?.status === "COMPLETED"
+      ? colors.success
+      : payment?.status === "FAILED"
+        ? "#EF4444"
+        : colors.warning;
 
   if (loading) {
     return (
@@ -251,6 +269,14 @@ export function DeliveryDetailScreen() {
             value={delivery.pkg.name}
             subValue={`${delivery.pkg.size} • ${delivery.pkg.weight}`}
             color={colors.warning}
+          />
+
+          <InfoItem
+            icon="payments"
+            iconType="Material"
+            label="Payment"
+            value={`${paymentLabel} • $${paymentAmount.toFixed(2)}`}
+            color={paymentColor}
           />
         </View>
 
