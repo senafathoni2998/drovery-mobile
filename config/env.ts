@@ -31,6 +31,10 @@ export const ENV = {
   // Mock credentials for demo mode (also the seeded backend account)
   MOCK_EMAIL: 'demo@drovery.com',
   MOCK_PASSWORD: 'demo123',
+
+  // Stripe publishable key — enables the native card-entry PaymentSheet.
+  // Leave empty to hide the Stripe flow and use the manual card form.
+  STRIPE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
 } as const;
 
 export type AuthMode = 'mock' | 'api';

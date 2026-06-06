@@ -49,3 +49,19 @@ describe('paymentApi.setDefault', () => {
     expect(mockPatch).toHaveBeenCalledWith('/payment-methods/pm-123/default');
   });
 });
+
+describe('paymentApi.setupIntent', () => {
+  it('calls api.post with /payment-methods/setup-intent', () => {
+    mockPost.mockResolvedValue({ mock: true });
+    paymentApi.setupIntent();
+    expect(mockPost).toHaveBeenCalledWith('/payment-methods/setup-intent');
+  });
+});
+
+describe('paymentApi.sync', () => {
+  it('calls api.post with /payment-methods/sync', () => {
+    mockPost.mockResolvedValue([]);
+    paymentApi.sync();
+    expect(mockPost).toHaveBeenCalledWith('/payment-methods/sync');
+  });
+});
