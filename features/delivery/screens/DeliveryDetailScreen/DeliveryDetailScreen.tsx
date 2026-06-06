@@ -350,6 +350,19 @@ export function DeliveryDetailScreen() {
             {!!proof.notes && (
               <Text style={styles.proofNotes}>“{proof.notes}”</Text>
             )}
+            <TouchableOpacity
+              style={styles.proofPhotoButton}
+              onPress={() =>
+                router.push({
+                  pathname: "/capture-proof",
+                  params: { id: params.id },
+                })
+              }
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name="photo-camera" size={16} color={colors.primary.DEFAULT} />
+              <Text style={styles.proofPhotoButtonText}>Take delivery photo</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -602,5 +615,22 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     color: colors.text.secondary,
     marginTop: spacing.xs,
+  },
+  proofPhotoButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: "#CCFBF1",
+    backgroundColor: "#F0FDFA",
+  },
+  proofPhotoButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: colors.primary.DEFAULT,
   },
 });

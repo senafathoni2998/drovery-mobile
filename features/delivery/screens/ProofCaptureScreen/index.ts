@@ -1,0 +1,1 @@
+export { ProofCaptureScreen } from "./ProofCaptureScreen";
