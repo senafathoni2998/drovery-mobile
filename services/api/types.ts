@@ -58,6 +58,18 @@ export interface ApiDelivery {
   tracking?: ApiDeliveryTracking | null;
   workflowSteps?: ApiWorkflowStepCompletion[];
   payment?: ApiPayment | null;
+  proofOfDelivery?: ApiProofOfDelivery | null;
+}
+
+export interface ApiProofOfDelivery {
+  id: string;
+  deliveryId: string;
+  photoUrl: string;
+  recipientName: string | null;
+  lat: number | null;
+  lng: number | null;
+  notes: string | null;
+  capturedAt: string;
 }
 
 export interface ApiDeliveryTracking {

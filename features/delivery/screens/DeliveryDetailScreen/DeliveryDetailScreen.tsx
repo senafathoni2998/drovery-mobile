@@ -1,4 +1,5 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
@@ -135,6 +136,8 @@ export function DeliveryDetailScreen() {
       : payment?.status === "FAILED"
         ? "#EF4444"
         : colors.warning;
+
+  const proof = apiDelivery?.proofOfDelivery ?? null;
 
   if (loading) {
     return (
@@ -310,6 +313,45 @@ export function DeliveryDetailScreen() {
             </View>
           </View>
         </View>
+
+        {/* Proof of Delivery */}
+        {proof && (
+          <View style={styles.proofCard}>
+            <View style={styles.proofHeader}>
+              <MaterialIcons name="verified" size={18} color={colors.success} />
+              <Text style={styles.proofTitle}>Proof of Delivery</Text>
+            </View>
+            <Image
+              source={{ uri: proof.photoUrl }}
+              style={styles.proofPhoto}
+              contentFit="cover"
+              transition={200}
+            />
+            <View style={styles.proofMetaRow}>
+              <MaterialIcons name="schedule" size={14} color={colors.text.placeholder} />
+              <Text style={styles.proofMetaText}>
+                Delivered {new Date(proof.capturedAt).toLocaleString()}
+              </Text>
+            </View>
+            {!!proof.recipientName && (
+              <View style={styles.proofMetaRow}>
+                <MaterialIcons name="person" size={14} color={colors.text.placeholder} />
+                <Text style={styles.proofMetaText}>Received by {proof.recipientName}</Text>
+              </View>
+            )}
+            {proof.lat != null && proof.lng != null && (
+              <View style={styles.proofMetaRow}>
+                <MaterialIcons name="location-on" size={14} color={colors.text.placeholder} />
+                <Text style={styles.proofMetaText}>
+                  {proof.lat.toFixed(5)}, {proof.lng.toFixed(5)}
+                </Text>
+              </View>
+            )}
+            {!!proof.notes && (
+              <Text style={styles.proofNotes}>“{proof.notes}”</Text>
+            )}
+          </View>
+        )}
 
         {/* Footer Actions */}
         <FooterActions
@@ -512,5 +554,53 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#EF4444",
+  },
+  proofCard: {
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.xxl,
+    borderWidth: 1,
+    borderColor: colors.border.DEFAULT,
+    padding: spacing.xxl,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    gap: spacing.sm,
+  },
+  proofHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  proofTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.text.primary,
+  },
+  proofPhoto: {
+    width: "100%",
+    height: 180,
+    borderRadius: borderRadius.lg,
+    backgroundColor: "#F1F5F9",
+    marginBottom: spacing.xs,
+  },
+  proofMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  proofMetaText: {
+    fontSize: 12,
+    color: colors.text.secondary,
+  },
+  proofNotes: {
+    fontSize: 13,
+    fontStyle: "italic",
+    color: colors.text.secondary,
+    marginTop: spacing.xs,
   },
 });
