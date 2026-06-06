@@ -3,6 +3,7 @@ import React, { useCallback } from "react";
 import { BackHandler, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
+import { EmailVerificationBanner } from "@/features/auth/components/EmailVerificationBanner";
 import { useActiveDeliveries } from "../../hooks/useActiveDeliveries";
 import { useRecentDeliveries } from "../../hooks/useRecentDeliveries";
 import { commonStyles, spacing } from "../../../../styles/common";
@@ -91,6 +92,7 @@ export function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <HeaderSection userName={userName} />
+        <EmailVerificationBanner />
         <QuickActions actions={quickActions} />
         <ActiveDeliveries deliveries={activeDeliveries} />
         {/* <PromoCard code="FLYFAST" description="Free delivery for your next order" /> */}

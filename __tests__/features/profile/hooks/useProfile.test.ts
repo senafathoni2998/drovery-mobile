@@ -18,6 +18,8 @@ const MOCK_USER: ApiUser = {
   address: 'Jakarta, Indonesia',
   bio: 'Test user',
   avatarUrl: null,
+  emailVerified: true,
+  emailVerifiedAt: '2024-01-01T00:00:00Z',
   createdAt: '2024-01-01T00:00:00Z',
 };
 

@@ -13,6 +13,8 @@ export interface ApiUser {
   address: string | null;
   bio: string | null;
   avatarUrl: string | null;
+  emailVerified: boolean;
+  emailVerifiedAt: string | null;
   createdAt: string;
 }
 
