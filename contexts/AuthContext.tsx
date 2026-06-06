@@ -26,6 +26,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const logout = useCallback(async () => {
+    // Revoke the refresh token server-side (best-effort), then always clear locally.
+    try {
+      const { refreshToken } = await getTokens();
+      if (refreshToken) {
+        await api.post('/auth/logout', { refreshToken }, { skipAuth: true });
+      }
+    } catch {
+      // ignore — logout must succeed locally regardless
+    }
     await clearTokens();
     setState({ user: null, isAuthenticated: false, isLoading: false });
   }, []);
