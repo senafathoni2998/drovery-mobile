@@ -1,9 +1,10 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,6 +18,7 @@ import {
   commonStyles,
   spacing,
 } from "../../../../styles/common";
+import { deliveryApi } from "../../services/deliveryApi";
 import { useDelivery } from "../../hooks/useDelivery";
 import {
   STEPS,
@@ -36,6 +38,9 @@ const STATUS_TO_STEP: Record<string, number> = {
   CANCELED: 0,
 };
 
+// Mirrors the backend: only these statuses can be canceled.
+const CANCELABLE_STATUSES = ["PENDING", "CONFIRMED"];
+
 function formatStatus(status: string): string {
   return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -45,7 +50,41 @@ export function DeliveryDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string }>();
-  const { data: apiDelivery, loading, error } = useDelivery(params.id);
+  const { data: apiDelivery, loading, error, refetch } = useDelivery(params.id);
+  const [canceling, setCanceling] = useState(false);
+
+  const canCancel =
+    !!apiDelivery && CANCELABLE_STATUSES.includes(apiDelivery.status);
+
+  const handleCancel = () => {
+    if (!apiDelivery) return;
+    Alert.alert(
+      "Cancel delivery?",
+      "This will cancel the delivery and recall the drone. This cannot be undone.",
+      [
+        { text: "Keep delivery", style: "cancel" },
+        {
+          text: "Cancel delivery",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setCanceling(true);
+              await deliveryApi.cancel(apiDelivery.id);
+              await refetch();
+              Alert.alert("Delivery canceled", "Your delivery has been canceled.");
+            } catch (err) {
+              Alert.alert(
+                "Couldn't cancel",
+                err instanceof Error ? err.message : "Please try again.",
+              );
+            } finally {
+              setCanceling(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const delivery: Delivery = apiDelivery
     ? {
@@ -251,6 +290,25 @@ export function DeliveryDetailScreen() {
           onTrackMap={handleTrackMap}
           onContactSupport={handleContactSupport}
         />
+
+        {/* Cancel delivery (only while pending/confirmed) */}
+        {canCancel && (
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={handleCancel}
+            disabled={canceling}
+            activeOpacity={0.8}
+          >
+            {canceling ? (
+              <ActivityIndicator size="small" color="#EF4444" />
+            ) : (
+              <>
+                <MaterialIcons name="cancel" size={18} color="#EF4444" />
+                <Text style={styles.cancelButtonText}>Cancel Delivery</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
@@ -410,5 +468,23 @@ const styles = StyleSheet.create({
   },
   stepsList: {
     gap: 24,
+  },
+  cancelButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    backgroundColor: "#FEF2F2",
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#EF4444",
   },
 });

@@ -5,11 +5,13 @@ jest.mock('@/services/api/apiClient', () => ({
   api: {
     get: jest.fn(),
     patch: jest.fn(),
+    post: jest.fn(),
   },
 }));
 
 const mockGet = api.get as jest.Mock;
 const mockPatch = api.patch as jest.Mock;
+const mockPost = api.post as jest.Mock;
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -42,5 +44,16 @@ describe('notificationApi.markAllAsRead', () => {
     mockPatch.mockResolvedValue({ count: 5 });
     notificationApi.markAllAsRead();
     expect(mockPatch).toHaveBeenCalledWith('/notifications/read-all');
+  });
+});
+
+describe('notificationApi.registerDevice', () => {
+  it('posts the push token and platform to /notifications/devices', () => {
+    mockPost.mockResolvedValue({ id: 'device-1' });
+    notificationApi.registerDevice('ExponentPushToken[abc]', 'ios');
+    expect(mockPost).toHaveBeenCalledWith('/notifications/devices', {
+      pushToken: 'ExponentPushToken[abc]',
+      platform: 'ios',
+    });
   });
 });

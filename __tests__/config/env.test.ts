@@ -1,14 +1,17 @@
 // ENV is evaluated at import time, so we reset modules and re-require
 // for each test that needs to control process.env values.
+//
+// NOTE: Expo only exposes EXPO_PUBLIC_* vars to the bundle, so config/env.ts
+// reads process.env.EXPO_PUBLIC_* (not the bare names).
 
-const DEFAULT_LAN_IP = '192.168.0.38';
+const DEFAULT_LAN_IP = '192.168.1.7';
 const DEFAULT_API_URL = `http://${DEFAULT_LAN_IP}:3000/api/v1`;
 
 beforeEach(() => {
   jest.resetModules();
-  delete process.env.AUTH_MODE;
-  delete process.env.API_URL;
-  delete process.env.API_TIMEOUT;
+  delete process.env.EXPO_PUBLIC_AUTH_MODE;
+  delete process.env.EXPO_PUBLIC_API_URL;
+  delete process.env.EXPO_PUBLIC_API_TIMEOUT;
 });
 
 function loadEnv() {
@@ -18,13 +21,13 @@ function loadEnv() {
 // ==================== API_URL ====================
 
 describe('ENV.API_URL', () => {
-  it('defaults to the LAN IP URL when process.env.API_URL is not set', () => {
+  it('defaults to the LAN IP URL when EXPO_PUBLIC_API_URL is not set', () => {
     const ENV = loadEnv();
     expect(ENV.API_URL).toBe(DEFAULT_API_URL);
   });
 
-  it('uses process.env.API_URL when set', () => {
-    process.env.API_URL = 'http://10.0.2.2:3000/api/v1';
+  it('uses EXPO_PUBLIC_API_URL when set', () => {
+    process.env.EXPO_PUBLIC_API_URL = 'http://10.0.2.2:3000/api/v1';
     const ENV = loadEnv();
     expect(ENV.API_URL).toBe('http://10.0.2.2:3000/api/v1');
   });
@@ -33,13 +36,13 @@ describe('ENV.API_URL', () => {
 // ==================== API_TIMEOUT ====================
 
 describe('ENV.API_TIMEOUT', () => {
-  it('defaults to "10000" when process.env.API_TIMEOUT is not set', () => {
+  it('defaults to "10000" when EXPO_PUBLIC_API_TIMEOUT is not set', () => {
     const ENV = loadEnv();
     expect(ENV.API_TIMEOUT).toBe('10000');
   });
 
-  it('uses process.env.API_TIMEOUT when set', () => {
-    process.env.API_TIMEOUT = '3000';
+  it('uses EXPO_PUBLIC_API_TIMEOUT when set', () => {
+    process.env.EXPO_PUBLIC_API_TIMEOUT = '3000';
     const ENV = loadEnv();
     expect(ENV.API_TIMEOUT).toBe('3000');
   });
@@ -48,13 +51,13 @@ describe('ENV.API_TIMEOUT', () => {
 // ==================== AUTH_MODE ====================
 
 describe('ENV.AUTH_MODE', () => {
-  it('defaults to "api" when process.env.AUTH_MODE is not set', () => {
+  it('defaults to "api" when EXPO_PUBLIC_AUTH_MODE is not set', () => {
     const ENV = loadEnv();
     expect(ENV.AUTH_MODE).toBe('api');
   });
 
-  it('uses process.env.AUTH_MODE when set', () => {
-    process.env.AUTH_MODE = 'mock';
+  it('uses EXPO_PUBLIC_AUTH_MODE when set', () => {
+    process.env.EXPO_PUBLIC_AUTH_MODE = 'mock';
     const ENV = loadEnv();
     expect(ENV.AUTH_MODE).toBe('mock');
   });
