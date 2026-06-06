@@ -33,6 +33,7 @@ interface FormCardProps {
   onToggleRemember: () => void;
   onSubmit: () => void;
   onSignup: () => void;
+  onForgotPassword: () => void;
 }
 
 export function FormCard({
@@ -46,6 +47,7 @@ export function FormCard({
   onToggleRemember,
   onSubmit,
   onSignup,
+  onForgotPassword,
 }: FormCardProps) {
   return (
     <Animated.View entering={FadeInDown.delay(100).duration(500).springify()} style={styles.formCard}>
@@ -85,7 +87,7 @@ export function FormCard({
           <Text style={styles.checkboxLabel}>Remember me</Text>
         </Pressable>
 
-        <Pressable hitSlop={8}>
+        <Pressable hitSlop={8} onPress={onForgotPassword}>
           <Text style={styles.linkText}>Forgot password?</Text>
         </Pressable>
       </View>
