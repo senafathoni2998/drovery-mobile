@@ -78,7 +78,8 @@ export function PriceEstimationScreen() {
     packageTypes: watched.packageTypes ?? [],
   });
 
-  // Fetch price from API when size changes
+  // Fetch price from API when size/weight/types or the addresses change.
+  // Sending the addresses lets the backend price the flight distance too.
   React.useEffect(() => {
     const size = watched.packageSize;
     const types = watched.packageTypes;
@@ -89,11 +90,28 @@ export function PriceEstimationScreen() {
     const weight = parseFloat(watched.packageWeight ?? "0") || 0;
     setEstimating(true);
     pricingApi
-      .estimate({ packageSize: size, packageWeight: weight, packageTypes: types })
+      .estimate({
+        packageSize: size,
+        packageWeight: weight,
+        packageTypes: types,
+        fromAddress: watched.from || undefined,
+        toAddress: watched.to || undefined,
+      })
       .then(setApiBreakdown)
       .catch(() => setApiBreakdown(null))
       .finally(() => setEstimating(false));
-  }, [watched.packageSize, watched.packageWeight, watched.packageTypes]);
+  }, [
+    watched.packageSize,
+    watched.packageWeight,
+    watched.packageTypes,
+    watched.from,
+    watched.to,
+  ]);
+
+  const distanceFee =
+    apiBreakdown && "distanceFee" in apiBreakdown ? apiBreakdown.distanceFee : 0;
+  const distanceKm =
+    apiBreakdown && "distanceKm" in apiBreakdown ? apiBreakdown.distanceKm : 0;
 
   const hasEstimate = !!watched.packageSize;
   const [priceBarHeight, setPriceBarHeight] = useState(80);
@@ -262,6 +280,12 @@ export function PriceEstimationScreen() {
                 <BreakdownRow
                   label="Type surcharge"
                   value={breakdown.typeFee}
+                />
+              )}
+              {distanceFee > 0 && (
+                <BreakdownRow
+                  label={`Distance (${distanceKm.toFixed(1)} km)`}
+                  value={distanceFee}
                 />
               )}
               <View style={s.totalDivider} />

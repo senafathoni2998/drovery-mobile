@@ -109,6 +109,10 @@ export interface EstimatePriceDto {
   packageSize: string;
   packageWeight: number;
   packageTypes: string[];
+  fromLat?: number;
+  fromLng?: number;
+  toLat?: number;
+  toLng?: number;
 }
 
 export interface PriceEstimate {
@@ -116,6 +120,8 @@ export interface PriceEstimate {
   sizeFee: number;
   weightFee: number;
   typeFee: number;
+  distanceKm: number;
+  distanceFee: number;
   total: number;
 }
 
