@@ -6,6 +6,17 @@ import type { ApiDelivery } from '@/services/api/types';
 // ── Mock deliveryApi ──────────────────────────────────────────────────────────
 jest.mock('@/features/delivery/services/deliveryApi');
 
+// No real WebSocket under jest — drop the hook straight to poll mode (== legacy
+// behavior) so these getById-based assertions are unchanged by the WS rework.
+jest.mock('@/services/api/trackingSocket', () => ({
+  openTracking: jest.fn(
+    ({ callbacks }: { callbacks: { onUnavailable: (r: string) => void } }) => {
+      queueMicrotask(() => callbacks.onUnavailable('no-websocket'));
+      return { close: jest.fn() };
+    },
+  ),
+}));
+
 const mockedDeliveryApi = deliveryApi as jest.Mocked<typeof deliveryApi>;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

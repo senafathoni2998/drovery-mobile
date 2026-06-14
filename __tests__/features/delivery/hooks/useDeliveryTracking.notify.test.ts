@@ -10,6 +10,16 @@ jest.mock('@/services/notifications/push', () => ({
   configureNotificationHandler: jest.fn(),
   registerForPushNotifications: jest.fn(),
 }));
+// No real WebSocket under jest — fall back to poll mode; transitions are driven
+// here via refetch/getById, exactly as before the WS rework.
+jest.mock('@/services/api/trackingSocket', () => ({
+  openTracking: jest.fn(
+    ({ callbacks }: { callbacks: { onUnavailable: (r: string) => void } }) => {
+      queueMicrotask(() => callbacks.onUnavailable('no-websocket'));
+      return { close: jest.fn() };
+    },
+  ),
+}));
 
 const mockedApi = deliveryApi as jest.Mocked<typeof deliveryApi>;
 const mockedPresent = presentLocalNotification as jest.Mock;
