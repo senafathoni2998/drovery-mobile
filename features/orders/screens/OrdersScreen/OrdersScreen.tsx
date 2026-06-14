@@ -27,9 +27,10 @@ export function OrdersScreen() {
   // State
   const [activeTab, setActiveTab] = useState<DeliveryStatus>("current");
 
-  // Set active tab from URL param
+  // Set active tab from URL param (validate against TABS so the allowlist can't
+  // drift out of sync when a tab is added/removed).
   useEffect(() => {
-    if (params.tab && ["current", "completed", "canceled"].includes(params.tab)) {
+    if (params.tab && TABS.some((t) => t.key === params.tab)) {
       setActiveTab(params.tab);
     }
   }, [params.tab]);
@@ -61,7 +62,10 @@ export function OrdersScreen() {
         ? d.status === "DELIVERED"
           ? `Delivered ${new Date(d.updatedAt).toLocaleDateString()}`
           : (failureReasonMessage(d.failureReason) ?? meta.label)
-        : `ETA: ${d.pickupTime || "Pending"}`,
+        : d.status === "SCHEDULED"
+          ? // A scheduled delivery hasn't started — show the pickup window, not an ETA.
+            `Scheduled: ${new Date(d.pickupDate).toLocaleDateString()}${d.pickupTime ? `, ${d.pickupTime}` : ""}`
+          : `ETA: ${d.pickupTime || "Pending"}`,
     };
   });
 

@@ -133,7 +133,7 @@ export interface CreateDeliveryDto {
 export interface DeliveryQueryParams {
   page?: number;
   limit?: number;
-  status?: 'current' | 'completed' | 'canceled';
+  status?: 'current' | 'scheduled' | 'completed' | 'canceled';
   q?: string;
   sort?: 'recent' | 'title' | 'status';
 }

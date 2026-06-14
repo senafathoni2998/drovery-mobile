@@ -4,7 +4,7 @@ import type {
 } from "@/services/api/types";
 
 // Tab keys = the server-side list filter (distinct from a per-delivery status).
-export type TabKey = "current" | "completed" | "canceled";
+export type TabKey = "current" | "scheduled" | "completed" | "canceled";
 // Back-compat alias: existing imports use DeliveryStatus to mean the tab key.
 export type DeliveryStatus = TabKey;
 
@@ -22,6 +22,7 @@ export type SortOption = "recent" | "title" | "status";
 
 export const TABS: { key: TabKey; label: string }[] = [
   { key: "current", label: "Current Delivery" },
+  { key: "scheduled", label: "Scheduled" },
   { key: "completed", label: "Completed" },
   { key: "canceled", label: "Canceled" },
 ];
