@@ -27,19 +27,39 @@ export interface AuthResponse {
 // ==================== Deliveries ====================
 
 export type DeliveryStatus =
+  | 'SCHEDULED'
   | 'PENDING'
   | 'CONFIRMED'
   | 'DRONE_ASSIGNED'
   | 'PICKUP_IN_PROGRESS'
   | 'IN_TRANSIT'
+  | 'AWAITING_HANDOFF'
   | 'DELIVERED'
-  | 'CANCELED';
+  | 'CANCELED'
+  // Exception branches (off the happy path). RETURNING is transient (the drone is
+  // flying the package home); the other two are terminal.
+  | 'RETURNING'
+  | 'DELIVERY_FAILED'
+  | 'RETURNED_TO_BASE';
+
+// Why a delivery ended as RETURNING / DELIVERY_FAILED / RETURNED_TO_BASE; null on
+// the happy path. Mirrors the backend DeliveryFailureReason enum.
+export type DeliveryFailureReason =
+  | 'RECIPIENT_UNAVAILABLE'
+  | 'WEATHER_ABORT'
+  | 'UNSAFE_DROP_ZONE'
+  | 'MECHANICAL'
+  | 'ADMIN_ABORT'
+  | 'OTHER';
 
 export interface ApiDelivery {
   id: string;
   trackingId: string;
   userId: string;
   status: DeliveryStatus;
+  // Set on an exception outcome (RETURNING/DELIVERY_FAILED/RETURNED_TO_BASE); null
+  // on the happy path.
+  failureReason: DeliveryFailureReason | null;
   fromAddress: string;
   toAddress: string;
   fromLat: number | null;

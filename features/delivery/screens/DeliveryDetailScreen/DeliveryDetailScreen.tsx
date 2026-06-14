@@ -19,6 +19,10 @@ import {
   commonStyles,
   spacing,
 } from "../../../../styles/common";
+import {
+  failureReasonMessage,
+  statusMeta,
+} from "@/services/deliveryStatus";
 import { deliveryApi } from "../../services/deliveryApi";
 import { useDelivery } from "../../hooks/useDelivery";
 import {
@@ -29,18 +33,8 @@ import { FooterActions } from "./components/FooterActions";
 import { InfoItem } from "./components/InfoItem";
 import { StepItem } from "./components/StepItem";
 
-const STATUS_TO_STEP: Record<string, number> = {
-  PENDING: 0,
-  CONFIRMED: 1,
-  DRONE_ASSIGNED: 1,
-  PICKUP_IN_PROGRESS: 2,
-  IN_TRANSIT: 3,
-  DELIVERED: 5,
-  CANCELED: 0,
-};
-
 // Mirrors the backend: only these statuses can be canceled.
-const CANCELABLE_STATUSES = ["PENDING", "CONFIRMED"];
+const CANCELABLE_STATUSES = ["SCHEDULED", "PENDING", "CONFIRMED"];
 
 const PAYMENT_LABEL: Record<string, string> = {
   PENDING: "Pending",
@@ -49,10 +43,6 @@ const PAYMENT_LABEL: Record<string, string> = {
   FAILED: "Failed",
   REFUNDED: "Refunded",
 };
-
-function formatStatus(status: string): string {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
 
 // ==================== MAIN COMPONENT ====================
 export function DeliveryDetailScreen() {
@@ -98,7 +88,7 @@ export function DeliveryDetailScreen() {
   const delivery: Delivery = apiDelivery
     ? {
         id: apiDelivery.trackingId,
-        status: formatStatus(apiDelivery.status),
+        status: statusMeta(apiDelivery.status).label,
         from: apiDelivery.fromAddress,
         to: apiDelivery.toAddress,
         sender: "You",
@@ -125,7 +115,12 @@ export function DeliveryDetailScreen() {
         pkg: { name: "", size: "", weight: "" },
       };
 
-  const CURRENT_STEP_INDEX = apiDelivery ? (STATUS_TO_STEP[apiDelivery.status] ?? 0) : 0;
+  const meta = apiDelivery ? statusMeta(apiDelivery.status) : null;
+  const CURRENT_STEP_INDEX = meta ? meta.step : 0;
+  const exceptionNote =
+    meta?.exception && apiDelivery
+      ? failureReasonMessage(apiDelivery.failureReason)
+      : null;
 
   const payment = apiDelivery?.payment ?? null;
   const paymentLabel = payment ? PAYMENT_LABEL[payment.status] ?? payment.status : "Pending";
@@ -212,6 +207,36 @@ export function DeliveryDetailScreen() {
           </LinearGradient>
         </View>
 
+        {/* Exception banner — why a returning / failed / returned delivery ended */}
+        {meta?.exception && (
+          <View
+            style={[
+              styles.exceptionBanner,
+              { backgroundColor: meta.bg, borderColor: meta.color },
+            ]}
+          >
+            <MaterialIcons
+              name={
+                meta.kind === "failed"
+                  ? "error-outline"
+                  : meta.kind === "returned"
+                    ? "home"
+                    : "undo"
+              }
+              size={22}
+              color={meta.color}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.exceptionTitle, { color: meta.color }]}>
+                {delivery.status}
+              </Text>
+              {exceptionNote && (
+                <Text style={styles.exceptionText}>{exceptionNote}</Text>
+              )}
+            </View>
+          </View>
+        )}
+
         {/* Summary Card */}
         <View style={styles.summaryCard}>
           <InfoRow>
@@ -294,8 +319,16 @@ export function DeliveryDetailScreen() {
             <View style={styles.stepsLine} />
             <View style={styles.stepsList}>
               {STEPS.map((step, index) => {
-                const state: "done" | "current" | "upcoming" =
-                  index < CURRENT_STEP_INDEX
+                // On an exception (returning/failed/returned) NO step is "current":
+                // the red/amber banner above carries the narrative, and marking a
+                // happy-path step "current" would show a misleading blue in-progress
+                // dot AND surface its action button (e.g. "Unload Package" on a
+                // failed delivery). StepItem gates its action on state==="current".
+                const state: "done" | "current" | "upcoming" = meta?.exception
+                  ? index < CURRENT_STEP_INDEX
+                    ? "done"
+                    : "upcoming"
+                  : index < CURRENT_STEP_INDEX
                     ? "done"
                     : index === CURRENT_STEP_INDEX
                       ? "current"
@@ -486,6 +519,25 @@ const styles = StyleSheet.create({
     height: 112,
     borderRadius: 56,
     backgroundColor: "rgba(255, 255, 255, 0.2)",
+  },
+  exceptionBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    borderWidth: 1,
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+  },
+  exceptionTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  exceptionText: {
+    fontSize: 13,
+    color: colors.text.light,
+    marginTop: 2,
   },
   summaryCard: {
     backgroundColor: colors.white,

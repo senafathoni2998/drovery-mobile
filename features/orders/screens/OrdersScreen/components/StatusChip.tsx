@@ -1,20 +1,31 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { statusBadge } from "@/styles/common";
-import type { DeliveryStatus } from "../OrdersScreen.types";
+import { statusMeta, type DeliveryStatusKind } from "@/services/deliveryStatus";
+import type { DeliveryStatus } from "@/services/api/types";
 
 interface StatusChipProps {
   status: DeliveryStatus;
 }
 
+const KIND_ICON: Record<DeliveryStatusKind, keyof typeof Ionicons.glyphMap> = {
+  pending: "time-outline",
+  active: "navigate-outline",
+  awaiting: "hand-left-outline",
+  success: "checkmark-circle",
+  canceled: "close-circle",
+  returning: "return-up-back",
+  failed: "alert-circle",
+  returned: "home",
+};
+
 export function StatusChip({ status }: StatusChipProps) {
-  const config = statusBadge(status === "current" ? "in-progress" : status);
+  const meta = statusMeta(status);
 
   return (
-    <View style={[styles.chip, { backgroundColor: config.bg, borderColor: config.border }]}>
-      <Ionicons name={config.icon} size={14} color={config.color} />
-      <Text style={[styles.chipText, { color: config.color }]}>{config.label}</Text>
+    <View style={[styles.chip, { backgroundColor: meta.bg, borderColor: meta.color }]}>
+      <Ionicons name={KIND_ICON[meta.kind]} size={14} color={meta.color} />
+      <Text style={[styles.chipText, { color: meta.color }]}>{meta.label}</Text>
     </View>
   );
 }

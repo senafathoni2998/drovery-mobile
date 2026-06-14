@@ -3,6 +3,7 @@ import React, { useCallback } from "react";
 import { BackHandler, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
+import { statusMeta } from "@/services/deliveryStatus";
 import { EmailVerificationBanner } from "@/features/auth/components/EmailVerificationBanner";
 import { useActiveDeliveries } from "../../hooks/useActiveDeliveries";
 import { useRecentDeliveries } from "../../hooks/useRecentDeliveries";
@@ -25,23 +26,6 @@ const quickActions: QuickAction[] = [
   { label: "Price Estimate", icon: "payments", tone: ["#F59E0B", "#F97316"] },
 ] as const;
 
-function getStatusProgress(status: string): number {
-  const map: Record<string, number> = {
-    PENDING: 10,
-    CONFIRMED: 20,
-    DRONE_ASSIGNED: 35,
-    PICKUP_IN_PROGRESS: 50,
-    IN_TRANSIT: 75,
-    DELIVERED: 100,
-    CANCELED: 0,
-  };
-  return map[status] ?? 0;
-}
-
-function formatStatus(status: string): string {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
 // ==================== COMPONENT ====================
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -57,14 +41,20 @@ export function HomeScreen() {
     refetchRecent();
   }, [refetchActive, refetchRecent]));
 
-  const activeDeliveries: Delivery[] = activeData.map((d) => ({
-    id: d.trackingId,
-    deliveryId: d.id,
-    title: d.packages,
-    status: formatStatus(d.status),
-    progress: getStatusProgress(d.status),
-    eta: d.pickupTime || "Pending",
-  }));
+  const activeDeliveries: Delivery[] = activeData.map((d) => {
+    const meta = statusMeta(d.status);
+    return {
+      id: d.trackingId,
+      deliveryId: d.id,
+      title: d.packages,
+      status: meta.label,
+      statusColor: meta.color,
+      statusBg: meta.bg,
+      exception: meta.exception,
+      progress: meta.progressPct,
+      eta: d.pickupTime || "Pending",
+    };
+  });
 
   const recentDeliveries: RecentItem[] = recentData.map((d) => ({
     id: d.trackingId,

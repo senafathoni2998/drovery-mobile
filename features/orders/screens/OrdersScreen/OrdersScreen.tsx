@@ -5,6 +5,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { commonStyles, colors, spacing } from "../../../../styles/common";
+import { failureReasonMessage, statusMeta } from "@/services/deliveryStatus";
 import { useDeliveries } from "../../hooks/useDeliveries";
 import { DeliveryCard } from "./components/DeliveryCard";
 import { EmptyState } from "./components/EmptyState";
@@ -45,18 +46,24 @@ export function OrdersScreen() {
   // Reload data when tab gets focus
   useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
 
-  const filteredItems: DeliveryItem[] = items.map((d) => ({
-    id: d.trackingId,
-    deliveryId: d.id,
-    title: d.packages,
-    status: activeTab,
-    subtitle:
-      d.status === "DELIVERED"
-        ? `Delivered ${new Date(d.updatedAt).toLocaleDateString()}`
-        : d.status === "CANCELED"
-          ? "Canceled"
-          : `ETA: ${d.pickupTime || "Pending"}`,
-  }));
+  const filteredItems: DeliveryItem[] = items.map((d) => {
+    const meta = statusMeta(d.status);
+    return {
+      id: d.trackingId,
+      deliveryId: d.id,
+      title: d.packages,
+      // The chip reflects the REAL delivery status, not the selected tab — so a
+      // failed/returned row reads "Delivery Failed"/"Returned to Base", not the
+      // tab's "Completed".
+      status: d.status,
+      failureReason: d.failureReason,
+      subtitle: meta.terminal
+        ? d.status === "DELIVERED"
+          ? `Delivered ${new Date(d.updatedAt).toLocaleDateString()}`
+          : (failureReasonMessage(d.failureReason) ?? meta.label)
+        : `ETA: ${d.pickupTime || "Pending"}`,
+    };
+  });
 
   // Handlers
   const handleSortSelect = (option: string) => {

@@ -20,17 +20,8 @@ import {
   spacing,
 } from "../../../../styles/common";
 import { useActiveDeliveries } from "@/features/home/hooks/useActiveDeliveries";
+import { statusMeta } from "@/services/deliveryStatus";
 import { useTrackDelivery } from "../../hooks/useTrackDelivery";
-
-const STATUS_STYLE: Record<string, { color: string; bg: string; label: string }> = {
-  PENDING: { color: "#0369A1", bg: "#E0F2FE", label: "Pending" },
-  CONFIRMED: { color: "#0369A1", bg: "#E0F2FE", label: "Confirmed" },
-  DRONE_ASSIGNED: { color: "#0D9488", bg: "#F0FDFA", label: "Drone Assigned" },
-  PICKUP_IN_PROGRESS: { color: "#0D9488", bg: "#F0FDFA", label: "Pickup In Progress" },
-  IN_TRANSIT: { color: "#0D9488", bg: "#F0FDFA", label: "In Transit" },
-  DELIVERED: { color: "#047857", bg: "#ECFDF5", label: "Delivered" },
-  CANCELED: { color: "#B91C1C", bg: "#FEF2F2", label: "Canceled" },
-};
 
 // ==================== MAIN COMPONENT ====================
 export function TrackPackageScreen() {
@@ -42,16 +33,16 @@ export function TrackPackageScreen() {
   const { track } = useTrackDelivery();
 
   const RECENT_TRACKS = recentDeliveries.map((d) => {
-    const style = STATUS_STYLE[d.status] ?? STATUS_STYLE.PENDING;
+    const meta = statusMeta(d.status);
     return {
       id: d.trackingId,
       dbId: d.id,
       pkg: d.packages,
       from: d.fromAddress,
       to: d.toAddress,
-      status: style.label,
-      statusColor: style.color,
-      statusBg: style.bg,
+      status: meta.label,
+      statusColor: meta.color,
+      statusBg: meta.bg,
     };
   });
 

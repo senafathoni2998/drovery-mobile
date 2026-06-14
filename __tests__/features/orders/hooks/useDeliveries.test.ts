@@ -15,6 +15,7 @@ const makeMockDelivery = (overrides: Partial<ApiDelivery> = {}): ApiDelivery => 
   trackingId: 'TRK-001',
   userId: 'usr-1',
   status: 'PENDING',
+  failureReason: null,
   fromAddress: '123 Origin St',
   toAddress: '456 Dest Ave',
   fromLat: -6.2,

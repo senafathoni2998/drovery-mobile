@@ -29,8 +29,15 @@ export function ActiveDeliveries({ deliveries }: ActiveDeliveriesProps) {
             <Text style={styles.deliveryTitle} numberOfLines={1}>
               {delivery.title}
             </Text>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>{delivery.status}</Text>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: delivery.statusBg, borderColor: delivery.statusColor },
+              ]}
+            >
+              <Text style={[styles.statusText, { color: delivery.statusColor }]}>
+                {delivery.status}
+              </Text>
             </View>
           </View>
           <Text style={styles.deliverySubtitle} numberOfLines={1}>
@@ -43,7 +50,9 @@ export function ActiveDeliveries({ deliveries }: ActiveDeliveriesProps) {
         <View style={styles.progressBg}>
           <View style={[styles.progressFill, { width: `${delivery.progress}%` }]}>
             <LinearGradient
-              colors={["#14B8A6", "#06B6D4"]}
+              // Amber for an exception (e.g. RETURNING) so the bar doesn't read as
+              // normal happy-path progress; teal otherwise.
+              colors={delivery.exception ? ["#F59E0B", "#FBBF24"] : ["#14B8A6", "#06B6D4"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.progressGradient}

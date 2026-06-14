@@ -1,27 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { deliveryApi } from '@/features/delivery/services/deliveryApi';
 import { presentLocalNotification } from '@/services/notifications/push';
+import { statusMeta } from '@/services/deliveryStatus';
 import type { ApiDelivery, DeliveryStatus } from '@/services/api/types';
 
 const POLL_INTERVAL_MS = 4000;
-const TERMINAL_STATUSES: DeliveryStatus[] = ['DELIVERED', 'CANCELED'];
 
 const STATUS_MESSAGE: Record<DeliveryStatus, string> = {
+  SCHEDULED: 'Your delivery is scheduled.',
   PENDING: 'Your delivery request has been received.',
   CONFIRMED: 'Your delivery has been confirmed.',
   DRONE_ASSIGNED: 'A drone has been assigned to your delivery.',
   PICKUP_IN_PROGRESS: 'The drone is heading to the pickup location.',
   IN_TRANSIT: 'Your package is on its way! 🚁',
+  AWAITING_HANDOFF: 'The drone has arrived — confirm the handoff to receive it.',
   DELIVERED: 'Your package has been delivered. 🎉',
   CANCELED: 'Your delivery has been canceled.',
+  RETURNING: 'The drone is returning your package to base.',
+  DELIVERY_FAILED: 'Your delivery could not be completed.',
+  RETURNED_TO_BASE: 'Your package has been returned to base.',
 };
-
-function prettyStatus(status: string): string {
-  return status
-    .toLowerCase()
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
 
 /**
  * Loads a delivery and then polls it on an interval so the map/tracking UI
@@ -54,7 +52,7 @@ export function useDeliveryTracking(id: string | undefined) {
           prevStatusRef.current !== result.status
         ) {
           void presentLocalNotification(
-            prettyStatus(result.status),
+            statusMeta(result.status).label,
             STATUS_MESSAGE[result.status] ??
               'Your delivery status has updated.',
             { deliveryId: result.id, status: result.status },
@@ -84,7 +82,10 @@ export function useDeliveryTracking(id: string | undefined) {
     if (!id) return;
 
     const interval = setInterval(() => {
-      if (statusRef.current && TERMINAL_STATUSES.includes(statusRef.current)) {
+      // Stop polling at a terminal status (DELIVERED/CANCELED/DELIVERY_FAILED/
+      // RETURNED_TO_BASE). RETURNING is transient — keep polling so the map tracks
+      // the drone flying the package home.
+      if (statusRef.current && statusMeta(statusRef.current).terminal) {
         clearInterval(interval);
         return;
       }

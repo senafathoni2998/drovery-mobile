@@ -19,11 +19,8 @@ import MapView, {
 } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { borderRadius, colors, spacing } from "../../../../styles/common";
+import { statusMeta } from "@/services/deliveryStatus";
 import { useDeliveryTracking } from "../../hooks/useDeliveryTracking";
-
-function formatStatus(status: string): string {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
 
 // ==================== MAIN COMPONENT ====================
 export function TrackOnMapScreen() {
@@ -81,18 +78,20 @@ export function TrackOnMapScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tracking?.droneLat, tracking?.droneLng]);
 
-  const isLive =
-    !!apiDelivery &&
-    apiDelivery.status !== "DELIVERED" &&
-    apiDelivery.status !== "CANCELED";
+  const meta = statusMeta(apiDelivery?.status);
+  // "Live" = not settled. RETURNING is non-terminal (drone still flying the
+  // package home → keep the map live); DELIVERY_FAILED / RETURNED_TO_BASE are
+  // terminal → no LIVE badge, no pulsing drone, no ETA.
+  const isLive = !!apiDelivery && !meta.terminal;
 
   const DELIVERY_INFO = {
     id: apiDelivery?.trackingId ?? "",
-    status: apiDelivery ? formatStatus(apiDelivery.status) : "Loading",
+    status: apiDelivery ? meta.label : "Loading",
+    statusColor: meta.color,
     from: apiDelivery?.fromAddress ?? "",
     to: apiDelivery?.toAddress ?? "",
-    eta: tracking?.eta ?? apiDelivery?.pickupTime ?? "",
-    droneStatus: tracking?.droneStatus ?? formatStatus(apiDelivery?.status ?? ""),
+    eta: !apiDelivery || meta.terminal ? "—" : (tracking?.eta ?? apiDelivery.pickupTime ?? ""),
+    droneStatus: tracking?.droneStatus ?? (apiDelivery ? meta.label : ""),
   };
 
   const initialRegion = {
@@ -102,9 +101,14 @@ export function TrackOnMapScreen() {
     longitudeDelta: 0.035,
   };
 
-  // Pulse animation for drone marker
+  // Pulse animation for the drone marker — only while the delivery is live. A
+  // settled (failed/returned/delivered/canceled) flight shouldn't keep pulsing.
   useEffect(() => {
-    Animated.loop(
+    if (!isLive) {
+      pulseAnim.setValue(1);
+      return;
+    }
+    const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.4,
@@ -117,8 +121,10 @@ export function TrackOnMapScreen() {
           useNativeDriver: true,
         }),
       ]),
-    ).start();
-  }, [pulseAnim]);
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulseAnim, isLive]);
 
   const handleFitRoute = () => {
     mapRef.current?.fitToCoordinates([PICKUP_COORD, DROPOFF_COORD], {
@@ -222,8 +228,10 @@ export function TrackOnMapScreen() {
             <Text style={styles.idText}>#{DELIVERY_INFO.id}</Text>
           </View>
           <View style={styles.statusBadge}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusText}>
+            <View
+              style={[styles.statusDot, { backgroundColor: DELIVERY_INFO.statusColor }]}
+            />
+            <Text style={[styles.statusText, { color: DELIVERY_INFO.statusColor }]}>
               {isLive ? `${DELIVERY_INFO.status} · LIVE` : DELIVERY_INFO.status}
             </Text>
           </View>
