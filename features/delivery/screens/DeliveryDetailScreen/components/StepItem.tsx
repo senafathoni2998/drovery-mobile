@@ -10,10 +10,18 @@ interface StepItemProps {
   index: number;
   state: StepState;
   onAction?: (workflowId: string) => void;
+  /** Suppress the step's action CTA (e.g. when a dedicated card owns the action). */
+  hideAction?: boolean;
 }
 
-export function StepItem({ step, index, state, onAction }: StepItemProps) {
-  const showActionButton = !!step.action && state === "current";
+export function StepItem({
+  step,
+  index,
+  state,
+  onAction,
+  hideAction,
+}: StepItemProps) {
+  const showActionButton = !!step.action && state === "current" && !hideAction;
 
   return (
     <View style={styles.item}>

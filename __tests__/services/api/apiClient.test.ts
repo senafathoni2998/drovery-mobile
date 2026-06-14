@@ -373,6 +373,28 @@ describe('401 token refresh flow', () => {
     expect(mockClearTokens).not.toHaveBeenCalled();
   });
 
+  it('with noAuthRetry, a 401 throws the real ApiError WITHOUT refresh or logout', async () => {
+    // Regression guard: a wrong-handoff-code 401 must NOT be treated as an expired
+    // session (which would refresh → fail → clearTokens + onLogout the user out).
+    mockGetRefreshToken.mockResolvedValue('refresh-token'); // available, must stay unused
+    const onLogout = jest.fn();
+    setOnLogout(onLogout);
+    (fetch as jest.Mock).mockResolvedValue(
+      mockResponse({ message: 'Invalid handoff code.' }, 401, false),
+    );
+
+    await expect(
+      api.post('/deliveries/d-1/confirm-handoff', { code: '000000' }, { noAuthRetry: true }),
+    ).rejects.toMatchObject({ status: 401, message: 'Invalid handoff code.' });
+
+    // The bearer token is still attached (not skipAuth), but the 401 is surfaced
+    // as a domain error: no refresh attempt, no token clear, no logout.
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(mockGetRefreshToken).not.toHaveBeenCalled();
+    expect(mockClearTokens).not.toHaveBeenCalled();
+    expect(onLogout).not.toHaveBeenCalled();
+  });
+
   it('unwraps data envelope from refresh response when present', async () => {
     mockGetRefreshToken.mockResolvedValue('refresh-token');
 

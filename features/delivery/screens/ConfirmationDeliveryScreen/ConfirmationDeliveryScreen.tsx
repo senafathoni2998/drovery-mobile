@@ -16,6 +16,7 @@ import MapView, { Marker, Polyline } from "react-native-maps";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { deliveryApi } from "../../services/deliveryApi";
+import { saveHandoffCode } from "../../services/handoffCodeStore";
 import { pricingApi } from "../../services/pricingApi";
 
 // ==================== HELPERS ====================
@@ -132,6 +133,17 @@ export function ConfirmationDeliveryScreen() {
         toLat: toCoord?.latitude,
         toLng: toCoord?.longitude,
       });
+      // Persist the one-time handoff code so the user can re-read it at drop-off
+      // (it's never returned again). Best-effort — never block the success nav.
+      // Guard the write: only a non-empty code is worth storing (and writing an
+      // empty string would mask the cache-miss path with a useless entry).
+      if (delivery.handoffCode) {
+        try {
+          await saveHandoffCode(delivery.id, delivery.handoffCode);
+        } catch {
+          // ignore — the code still rides the nav param below
+        }
+      }
       router.push({
         pathname: "/delivery-congratulations",
         params: {
@@ -139,9 +151,11 @@ export function ConfirmationDeliveryScreen() {
           orderId: delivery.trackingId,
           from: params.from,
           to: params.to,
+          receiver: params.receiver ?? "",
           pickupDate: params.pickupDate,
           estTime,
           price: String(delivery.estimatedPrice ?? price),
+          handoffCode: delivery.handoffCode,
         },
       });
     } catch (err) {

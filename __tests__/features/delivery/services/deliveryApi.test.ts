@@ -150,3 +150,19 @@ describe('deliveryApi.cancel', () => {
     expect(mockPost).toHaveBeenCalledWith('/deliveries/uuid-123/cancel');
   });
 });
+
+// ==================== confirmHandoff ====================
+
+describe('deliveryApi.confirmHandoff', () => {
+  it('posts the code to /confirm-handoff with noAuthRetry (a 401 is wrong-code, not logout)', () => {
+    mockPost.mockResolvedValue({});
+
+    deliveryApi.confirmHandoff('uuid-123', '123456');
+
+    expect(mockPost).toHaveBeenCalledWith(
+      '/deliveries/uuid-123/confirm-handoff',
+      { code: '123456' },
+      { noAuthRetry: true },
+    );
+  });
+});

@@ -2,7 +2,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -25,6 +25,8 @@ import {
 } from "@/services/deliveryStatus";
 import { deliveryApi } from "../../services/deliveryApi";
 import { useDelivery } from "../../hooks/useDelivery";
+import { clearHandoffCode } from "../../services/handoffCodeStore";
+import { HandoffConfirmCard } from "./components/HandoffConfirmCard";
 import {
   STEPS,
   type Delivery,
@@ -51,6 +53,14 @@ export function DeliveryDetailScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const { data: apiDelivery, loading, error, refetch } = useDelivery(params.id);
   const [canceling, setCanceling] = useState(false);
+
+  // Once the delivery settles, drop the cached handoff code (spent or moot) so a
+  // stale secret doesn't linger on the device.
+  const settledId =
+    apiDelivery && statusMeta(apiDelivery.status).terminal ? apiDelivery.id : null;
+  useEffect(() => {
+    if (settledId) void clearHandoffCode(settledId);
+  }, [settledId]);
 
   const canCancel =
     !!apiDelivery && CANCELABLE_STATUSES.includes(apiDelivery.status);
@@ -142,7 +152,13 @@ export function DeliveryDetailScreen() {
     );
   }
 
-  if (error || !apiDelivery) {
+  // Only show the full-screen error when there is NO data to render. A refetch
+  // that fails *after* a successful confirm (we already hold a delivery) should
+  // keep the last-good view, not wipe it to an error card. Gating on !apiDelivery
+  // (rather than error && !apiDelivery) also covers the id-undefined path, where
+  // the hook settles with data=null AND error=null — which would otherwise fall
+  // through to an unguarded apiDelivery.status deref below.
+  if (!apiDelivery) {
     return (
       <View style={[commonStyles.container, { paddingTop: insets.top, justifyContent: "center", alignItems: "center", padding: 24 }]}>
         <Text style={{ color: "red", textAlign: "center", marginBottom: 8 }}>
@@ -340,12 +356,27 @@ export function DeliveryDetailScreen() {
                     index={index}
                     state={state}
                     onAction={handleAction}
+                    // At AWAITING_HANDOFF the confirm card below is the single primary
+                    // action — suppress the step's "Unload Package" workflow CTA.
+                    hideAction={
+                      apiDelivery.status === "AWAITING_HANDOFF" &&
+                      index === CURRENT_STEP_INDEX
+                    }
                   />
                 );
               })}
             </View>
           </View>
         </View>
+
+        {/* Recipient handoff — finalize the delivery with the 6-digit code */}
+        {apiDelivery.status === "AWAITING_HANDOFF" && (
+          <HandoffConfirmCard
+            deliveryId={apiDelivery.id}
+            toAddress={apiDelivery.toAddress}
+            onConfirmed={refetch}
+          />
+        )}
 
         {/* Proof of Delivery */}
         {proof && (

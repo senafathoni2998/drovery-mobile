@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { deliveryApi } from '@/features/delivery/services/deliveryApi';
+import { clearHandoffCode } from '@/features/delivery/services/handoffCodeStore';
 import { presentLocalNotification } from '@/services/notifications/push';
 import { statusMeta } from '@/services/deliveryStatus';
 import type { ApiDelivery, DeliveryStatus } from '@/services/api/types';
@@ -60,6 +61,14 @@ export function useDeliveryTracking(id: string | undefined) {
         }
         prevStatusRef.current = result.status;
         statusRef.current = result.status;
+
+        // Once the delivery settles, drop the cached handoff code (spent or moot)
+        // so the secret doesn't linger on the device — covers the case where the
+        // delivery settles while the user is on the map/tracking screen rather than
+        // the detail screen (which has its own clear-on-terminal effect). Idempotent.
+        if (statusMeta(result.status).terminal) {
+          void clearHandoffCode(result.id);
+        }
 
         setData(result);
       } catch (err) {

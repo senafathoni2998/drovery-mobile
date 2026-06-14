@@ -94,6 +94,16 @@ export interface ApiProofOfDelivery {
   capturedAt: string;
 }
 
+/**
+ * The shape POST /deliveries returns — ApiDelivery PLUS the plaintext 6-digit
+ * handoff code, which the API returns EXACTLY ONCE (never persisted, never
+ * returned on any later read). Distinct from ApiDelivery so read paths can't
+ * accidentally expect a code that isn't there.
+ */
+export interface ApiCreatedDelivery extends ApiDelivery {
+  handoffCode: string;
+}
+
 export interface ApiDeliveryTracking {
   id: string;
   deliveryId: string;
