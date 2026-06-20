@@ -4,6 +4,8 @@ The consumer mobile app for **Drovery**, a drone-delivery platform. Built with *
 
 This app is the frontend for the **drovery-backend** NestJS API (sibling repo at `../drovery-backend`).
 
+> **Part of the Drovery system** — three repos: [drovery-backend](https://github.com/senafathoni2998/Drovery-Backend) (API · realtime · workers), this mobile app, and [drovery-admin](https://github.com/senafathoni2998/Drovery-Admin-Frontend) (operator & support console). The backend README's [system overview](https://github.com/senafathoni2998/Drovery-Backend#drovery--system-overview) has the big-picture architecture + scale story.
+
 ## Get started
 
 1. **Install dependencies**
