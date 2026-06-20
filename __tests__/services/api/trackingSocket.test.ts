@@ -149,16 +149,25 @@ describe('openTracking', () => {
   });
 
   it('reports no-websocket when no WebSocket implementation is available', async () => {
-    const cb = mkCallbacks();
-    openTracking({
-      deliveryId: 'del-1',
-      callbacks: cb,
-      getToken: async () => 'tok',
-      wsBaseUrl: 'ws://host:3000',
-      WebSocketImpl: undefined,
-    });
-    await flush();
-    expect(cb.onUnavailable).toHaveBeenCalledWith('no-websocket');
+    // The jest-expo env now provides a global WebSocket, so openTracking's fallback
+    // (WebSocketImpl ?? globalThis.WebSocket) finds one. Remove it for this test to exercise
+    // the genuinely-absent path, and restore it afterward so other suites are unaffected.
+    const savedWS = (globalThis as { WebSocket?: unknown }).WebSocket;
+    delete (globalThis as { WebSocket?: unknown }).WebSocket;
+    try {
+      const cb = mkCallbacks();
+      openTracking({
+        deliveryId: 'del-1',
+        callbacks: cb,
+        getToken: async () => 'tok',
+        wsBaseUrl: 'ws://host:3000',
+        WebSocketImpl: undefined,
+      });
+      await flush();
+      expect(cb.onUnavailable).toHaveBeenCalledWith('no-websocket');
+    } finally {
+      (globalThis as { WebSocket?: unknown }).WebSocket = savedWS;
+    }
   });
 
   it('close() is idempotent and detaches handlers so late frames are inert', async () => {
