@@ -6,7 +6,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { styles, colors, spacing, borderRadius } from "@/features/auth/screens/LoginScreen/LoginScreen.styles";
 
 interface SignupHeroCardProps {
-  entering: typeof FadeInDown;
+  // A reanimated entering animation INSTANCE (e.g. FadeInDown.duration(600)) — not the class.
+  entering: FadeInDown;
 }
 
 export function SignupHeroCard({ entering }: SignupHeroCardProps) {
