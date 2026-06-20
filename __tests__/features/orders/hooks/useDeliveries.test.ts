@@ -106,10 +106,12 @@ describe('useDeliveries', () => {
       .mockResolvedValueOnce(response1)
       .mockResolvedValueOnce(response2);
 
-    const { result, rerender } = renderHook(
-      ({ params }) => useDeliveries(params),
-      { initialProps: { params: { status: 'current' as const } } },
-    );
+    const { result, rerender } = renderHook<
+      ReturnType<typeof useDeliveries>,
+      { params: Parameters<typeof useDeliveries>[0] }
+    >(({ params }) => useDeliveries(params), {
+      initialProps: { params: { status: 'current' as const } },
+    });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
