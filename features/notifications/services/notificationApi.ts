@@ -17,4 +17,11 @@ export const notificationApi = {
   markAllAsRead() {
     return api.patch<{ count: number }>('/notifications/read-all');
   },
+
+  registerDevice(pushToken: string, platform: 'ios' | 'android') {
+    return api.post<{ id: string }>('/notifications/devices', {
+      pushToken,
+      platform,
+    });
+  },
 };

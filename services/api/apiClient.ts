@@ -7,6 +7,10 @@ interface RequestOptions {
   headers?: Record<string, string>;
   timeout?: number;
   skipAuth?: boolean;
+  // Keep the bearer token, but DON'T treat a 401 as token-expiry (no refresh, no
+  // logout) — let it throw as an ApiError. For endpoints where a 401 is a
+  // legitimate domain outcome, e.g. a wrong handoff code on /confirm-handoff.
+  noAuthRetry?: boolean;
 }
 
 export class ApiError extends Error {
@@ -86,8 +90,9 @@ async function request<T>(
 
     clearTimeout(timer);
 
-    // Handle 401 - try refresh
-    if (res.status === 401 && !options.skipAuth) {
+    // Handle 401 - try refresh (unless this endpoint opts out, because a 401 is a
+    // legitimate domain response there rather than an expired session).
+    if (res.status === 401 && !options.skipAuth && !options.noAuthRetry) {
       if (!isRefreshing) {
         isRefreshing = true;
         refreshPromise = refreshAccessToken();

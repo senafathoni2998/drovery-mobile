@@ -18,6 +18,7 @@ import Animated, { FadeInDown, FadeInRight } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePaymentMethods } from "@/features/profile/hooks/usePaymentMethods";
 import { paymentApi } from "@/features/profile/services/paymentApi";
+import { StripeAddCard } from "./StripeAddCard";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -180,11 +181,13 @@ export function PaymentMethodsScreen() {
           ))
         )}
 
-        {/* ── Add card button ── */}
-        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+        {/* ── Add card buttons ── */}
+        <Animated.View entering={FadeInDown.delay(200).duration(400)} style={s.addGroup}>
+          {/* Native Stripe PaymentSheet (only when a publishable key is set) */}
+          <StripeAddCard onAdded={refetch} />
           <TouchableOpacity style={s.addButton} onPress={() => setShowModal(true)} activeOpacity={0.85}>
             <MaterialIcons name="add" size={20} color={colors.primary.DEFAULT} />
-            <Text style={s.addButtonText}>Add New Card</Text>
+            <Text style={s.addButtonText}>Add Card Manually</Text>
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
@@ -490,7 +493,10 @@ const s = StyleSheet.create({
     fontSize: fontSize.xs,
     fontWeight: "600",
   },
-  // Add button
+  // Add buttons
+  addGroup: {
+    gap: spacing.sm,
+  },
   addButton: {
     flexDirection: "row",
     alignItems: "center",

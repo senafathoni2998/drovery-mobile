@@ -5,6 +5,9 @@ export interface Delivery {
   deliveryId: string; // database UUID — used for API/navigation
   title: string;
   status: string;
+  statusColor: string; // from statusMeta — so an exception (RETURNING) isn't shown as normal
+  statusBg: string;
+  exception: boolean;
   progress: number;
   eta: string;
 }

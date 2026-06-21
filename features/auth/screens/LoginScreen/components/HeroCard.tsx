@@ -9,7 +9,8 @@ interface HeroCardProps {
   title: string;
   subtitle: string;
   icon: keyof typeof Ionicons.glyphMap;
-  entering: typeof FadeIn;
+  // A reanimated entering animation INSTANCE (e.g. FadeIn.duration(600)) — not the class.
+  entering: FadeIn;
 }
 
 export function HeroCard({ title, subtitle, icon, entering }: HeroCardProps) {

@@ -1,5 +1,6 @@
 import { api } from '@/services/api/apiClient';
 import type {
+  ApiCreatedDelivery,
   ApiDelivery,
   CreateDeliveryDto,
   DeliveryQueryParams,
@@ -14,7 +15,19 @@ function buildQuery(params: Record<string, unknown>): string {
 
 export const deliveryApi = {
   create(data: CreateDeliveryDto) {
-    return api.post<ApiDelivery>('/deliveries', data);
+    // Response carries the one-time plaintext handoffCode (see ApiCreatedDelivery).
+    return api.post<ApiCreatedDelivery>('/deliveries', data);
+  },
+
+  // Finalize a delivery awaiting handoff by submitting the recipient's 6-digit
+  // code → DELIVERED. noAuthRetry: a 401 here means "wrong code", NOT an expired
+  // session, so it must throw (not refresh+logout the user out of the app).
+  confirmHandoff(id: string, code: string) {
+    return api.post<ApiDelivery>(
+      `/deliveries/${id}/confirm-handoff`,
+      { code },
+      { noAuthRetry: true },
+    );
   },
 
   list(params: DeliveryQueryParams = {}) {

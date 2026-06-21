@@ -10,14 +10,17 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
+import MapView, {
+  AnimatedRegion,
+  Marker,
+  MarkerAnimated,
+  Polyline,
+  PROVIDER_DEFAULT,
+} from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { borderRadius, colors, spacing } from "../../../../styles/common";
+import { statusMeta } from "@/services/deliveryStatus";
 import { useDeliveryTracking } from "../../hooks/useDeliveryTracking";
-
-function formatStatus(status: string): string {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
 
 // ==================== MAIN COMPONENT ====================
 export function TrackOnMapScreen() {
@@ -46,13 +49,49 @@ export function TrackOnMapScreen() {
 
   const ROUTE_COORDS = [PICKUP_COORD, DRONE_COORD, DROPOFF_COORD];
 
+  // Animated drone position — glides smoothly to each polled location so the
+  // drone visibly "flies" between updates instead of teleporting.
+  const droneRegion = useRef(
+    new AnimatedRegion({
+      latitude: DRONE_COORD.latitude,
+      longitude: DRONE_COORD.longitude,
+      latitudeDelta: 0,
+      longitudeDelta: 0,
+    }),
+  ).current;
+
+  useEffect(() => {
+    if (tracking?.droneLat != null && tracking?.droneLng != null) {
+      droneRegion
+        .timing({
+          // react-native-maps' AnimatedRegion.timing accepts lat/lng directly;
+          // the typings incorrectly require `toValue`, so cast the config.
+          latitude: tracking.droneLat,
+          longitude: tracking.droneLng,
+          latitudeDelta: 0,
+          longitudeDelta: 0,
+          duration: 3500,
+          useNativeDriver: false,
+        } as any)
+        .start();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tracking?.droneLat, tracking?.droneLng]);
+
+  const meta = statusMeta(apiDelivery?.status);
+  // "Live" = not settled. RETURNING is non-terminal (drone still flying the
+  // package home → keep the map live); DELIVERY_FAILED / RETURNED_TO_BASE are
+  // terminal → no LIVE badge, no pulsing drone, no ETA.
+  const isLive = !!apiDelivery && !meta.terminal;
+
   const DELIVERY_INFO = {
     id: apiDelivery?.trackingId ?? "",
-    status: apiDelivery ? formatStatus(apiDelivery.status) : "Loading",
+    status: apiDelivery ? meta.label : "Loading",
+    statusColor: meta.color,
     from: apiDelivery?.fromAddress ?? "",
     to: apiDelivery?.toAddress ?? "",
-    eta: tracking?.eta ?? apiDelivery?.pickupTime ?? "",
-    droneStatus: tracking?.droneStatus ?? formatStatus(apiDelivery?.status ?? ""),
+    eta: !apiDelivery || meta.terminal ? "—" : (tracking?.eta ?? apiDelivery.pickupTime ?? ""),
+    droneStatus: tracking?.droneStatus ?? (apiDelivery ? meta.label : ""),
   };
 
   const initialRegion = {
@@ -62,9 +101,14 @@ export function TrackOnMapScreen() {
     longitudeDelta: 0.035,
   };
 
-  // Pulse animation for drone marker
+  // Pulse animation for the drone marker — only while the delivery is live. A
+  // settled (failed/returned/delivered/canceled) flight shouldn't keep pulsing.
   useEffect(() => {
-    Animated.loop(
+    if (!isLive) {
+      pulseAnim.setValue(1);
+      return;
+    }
+    const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.4,
@@ -77,8 +121,10 @@ export function TrackOnMapScreen() {
           useNativeDriver: true,
         }),
       ]),
-    ).start();
-  }, [pulseAnim]);
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulseAnim, isLive]);
 
   const handleFitRoute = () => {
     mapRef.current?.fitToCoordinates([PICKUP_COORD, DROPOFF_COORD], {
@@ -128,8 +174,8 @@ export function TrackOnMapScreen() {
           <MaterialIcons name="location-on" size={40} color="#F43F5E" />
         </Marker>
 
-        {/* Drone marker */}
-        <Marker coordinate={DRONE_COORD} anchor={{ x: 0.5, y: 0.5 }}>
+        {/* Drone marker — animates between live positions */}
+        <MarkerAnimated coordinate={droneRegion} anchor={{ x: 0.5, y: 0.5 }}>
           <View style={styles.droneMarkerWrapper}>
             <Animated.View
               style={[styles.dronePulse, { transform: [{ scale: pulseAnim }] }]}
@@ -138,7 +184,7 @@ export function TrackOnMapScreen() {
               <MaterialIcons name="flight" size={18} color="#fff" />
             </View>
           </View>
-        </Marker>
+        </MarkerAnimated>
       </MapView>
 
       {/* Top header overlay */}
@@ -182,8 +228,12 @@ export function TrackOnMapScreen() {
             <Text style={styles.idText}>#{DELIVERY_INFO.id}</Text>
           </View>
           <View style={styles.statusBadge}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusText}>{DELIVERY_INFO.status}</Text>
+            <View
+              style={[styles.statusDot, { backgroundColor: DELIVERY_INFO.statusColor }]}
+            />
+            <Text style={[styles.statusText, { color: DELIVERY_INFO.statusColor }]}>
+              {isLive ? `${DELIVERY_INFO.status} · LIVE` : DELIVERY_INFO.status}
+            </Text>
           </View>
         </View>
 

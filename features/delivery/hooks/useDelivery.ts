@@ -15,12 +15,9 @@ export function useDelivery(id: string | undefined) {
     try {
       setLoading(true);
       setError(null);
-      console.log('[useDelivery] fetching id:', id);
       const result = await deliveryApi.getById(id);
-      console.log('[useDelivery] result:', JSON.stringify(result, null, 2));
       setData(result);
     } catch (err) {
-      console.log('[useDelivery] error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load delivery');
     } finally {
       setLoading(false);

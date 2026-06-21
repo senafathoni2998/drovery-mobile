@@ -13,6 +13,8 @@ export interface ApiUser {
   address: string | null;
   bio: string | null;
   avatarUrl: string | null;
+  emailVerified: boolean;
+  emailVerifiedAt: string | null;
   createdAt: string;
 }
 
@@ -25,19 +27,39 @@ export interface AuthResponse {
 // ==================== Deliveries ====================
 
 export type DeliveryStatus =
+  | 'SCHEDULED'
   | 'PENDING'
   | 'CONFIRMED'
   | 'DRONE_ASSIGNED'
   | 'PICKUP_IN_PROGRESS'
   | 'IN_TRANSIT'
+  | 'AWAITING_HANDOFF'
   | 'DELIVERED'
-  | 'CANCELED';
+  | 'CANCELED'
+  // Exception branches (off the happy path). RETURNING is transient (the drone is
+  // flying the package home); the other two are terminal.
+  | 'RETURNING'
+  | 'DELIVERY_FAILED'
+  | 'RETURNED_TO_BASE';
+
+// Why a delivery ended as RETURNING / DELIVERY_FAILED / RETURNED_TO_BASE; null on
+// the happy path. Mirrors the backend DeliveryFailureReason enum.
+export type DeliveryFailureReason =
+  | 'RECIPIENT_UNAVAILABLE'
+  | 'WEATHER_ABORT'
+  | 'UNSAFE_DROP_ZONE'
+  | 'MECHANICAL'
+  | 'ADMIN_ABORT'
+  | 'OTHER';
 
 export interface ApiDelivery {
   id: string;
   trackingId: string;
   userId: string;
   status: DeliveryStatus;
+  // Set on an exception outcome (RETURNING/DELIVERY_FAILED/RETURNED_TO_BASE); null
+  // on the happy path.
+  failureReason: DeliveryFailureReason | null;
   fromAddress: string;
   toAddress: string;
   fromLat: number | null;
@@ -58,6 +80,28 @@ export interface ApiDelivery {
   tracking?: ApiDeliveryTracking | null;
   workflowSteps?: ApiWorkflowStepCompletion[];
   payment?: ApiPayment | null;
+  proofOfDelivery?: ApiProofOfDelivery | null;
+}
+
+export interface ApiProofOfDelivery {
+  id: string;
+  deliveryId: string;
+  photoUrl: string;
+  recipientName: string | null;
+  lat: number | null;
+  lng: number | null;
+  notes: string | null;
+  capturedAt: string;
+}
+
+/**
+ * The shape POST /deliveries returns — ApiDelivery PLUS the plaintext 6-digit
+ * handoff code, which the API returns EXACTLY ONCE (never persisted, never
+ * returned on any later read). Distinct from ApiDelivery so read paths can't
+ * accidentally expect a code that isn't there.
+ */
+export interface ApiCreatedDelivery extends ApiDelivery {
+  handoffCode: string;
 }
 
 export interface ApiDeliveryTracking {
@@ -89,7 +133,7 @@ export interface CreateDeliveryDto {
 export interface DeliveryQueryParams {
   page?: number;
   limit?: number;
-  status?: 'current' | 'completed' | 'canceled';
+  status?: 'current' | 'scheduled' | 'completed' | 'canceled';
   q?: string;
   sort?: 'recent' | 'title' | 'status';
 }
@@ -109,6 +153,10 @@ export interface EstimatePriceDto {
   packageSize: string;
   packageWeight: number;
   packageTypes: string[];
+  fromLat?: number;
+  fromLng?: number;
+  toLat?: number;
+  toLng?: number;
 }
 
 export interface PriceEstimate {
@@ -116,6 +164,8 @@ export interface PriceEstimate {
   sizeFee: number;
   weightFee: number;
   typeFee: number;
+  distanceKm: number;
+  distanceFee: number;
   total: number;
 }
 

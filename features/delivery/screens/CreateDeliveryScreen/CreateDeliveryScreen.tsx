@@ -17,6 +17,12 @@ import type {
   PackageType,
 } from "./CreateDeliveryScreen.types";
 import {
+  validateWeight,
+  validatePickupDate,
+  validatePickupTime,
+  MAX_WEIGHT_KG,
+} from "./validators";
+import {
   DateTimePickerField,
   FormHeader,
   FormSection,
@@ -43,13 +49,6 @@ const PACKAGE_SIZES = ["Small", "Medium", "Large", "XL"] as const;
 // TODO: replace with value from user profile store
 const USER_DEFAULT_ADDRESS =
   "Jalan Ahmad Yani 1 No. 77 RT 12 RW 13, Tanjung Duren, Jakarta";
-
-const MAX_WEIGHT_KG: Record<string, number> = {
-  Small: 0.5,
-  Medium: 1.5,
-  Large: 3,
-  XL: 5,
-};
 
 export function CreateDeliveryScreen() {
   const router = useRouter();
@@ -151,52 +150,6 @@ export function CreateDeliveryScreen() {
         },
       });
     }, 600);
-  };
-
-  const validateWeight = (value: string) => {
-    const num = parseFloat(value);
-    if (isNaN(num) || num <= 0) return "Enter a valid weight greater than 0";
-    const size = getValues("packageSize");
-    const max = MAX_WEIGHT_KG[size];
-    if (max !== undefined && num > max)
-      return `${num} kg exceeds the ${max} kg limit for ${size} packages`;
-    return true;
-  };
-
-  const validatePickupDate = (value: string) => {
-    const selected = new Date(value);
-    const today = new Date();
-    selected.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    if (selected < today) return "Pickup date cannot be in the past";
-    return true;
-  };
-
-  const validatePickupTime = (value: string) => {
-    const dateStr = getValues("pickupDate");
-    if (!dateStr) return true;
-
-    const selected = new Date(dateStr);
-    const today = new Date();
-    selected.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    if (selected.getTime() !== today.getTime()) return true;
-
-    const match = value.match(/(\d+):(\d+)\s*(AM|PM)/i);
-    if (!match) return true;
-    let hours = parseInt(match[1]);
-    const minutes = parseInt(match[2]);
-    const isPm = match[3].toUpperCase() === "PM";
-    if (isPm && hours !== 12) hours += 12;
-    if (!isPm && hours === 12) hours = 0;
-
-    const now = new Date();
-    const pickedTime = new Date();
-    pickedTime.setHours(hours, minutes, 0, 0);
-
-    if (pickedTime <= now)
-      return "Pickup time must be later than the current time";
-    return true;
   };
 
   return (
@@ -321,7 +274,7 @@ export function CreateDeliveryScreen() {
               name="packageWeight"
               rules={{
                 required: "Package weight is required",
-                validate: validateWeight,
+                validate: (v) => validateWeight(v, getValues("packageSize")),
               }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <InputField
@@ -387,7 +340,7 @@ export function CreateDeliveryScreen() {
                   name="pickupDate"
                   rules={{
                     required: "Pickup date is required",
-                    validate: validatePickupDate,
+                    validate: (v) => validatePickupDate(v),
                   }}
                   render={({ field: { onChange, value } }) => (
                     <DateTimePickerField
@@ -413,7 +366,7 @@ export function CreateDeliveryScreen() {
                   name="pickupTime"
                   rules={{
                     required: "Pickup time is required",
-                    validate: validatePickupTime,
+                    validate: (v) => validatePickupTime(v, getValues("pickupDate")),
                   }}
                   render={({ field: { onChange, value } }) => (
                     <DateTimePickerField

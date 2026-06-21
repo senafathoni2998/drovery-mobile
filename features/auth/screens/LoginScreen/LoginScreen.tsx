@@ -148,6 +148,7 @@ export function LoginScreen() {
           onToggleRemember={() => setRemember(!remember)}
           onSubmit={handleSubmit}
           onSignup={goToSignup}
+          onForgotPassword={() => router.push("/forgot-password")}
         />
       </ScrollView>
     </KeyboardAvoidingView>

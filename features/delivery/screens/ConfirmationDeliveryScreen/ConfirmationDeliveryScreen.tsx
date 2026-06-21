@@ -16,83 +16,19 @@ import MapView, { Marker, Polyline } from "react-native-maps";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { deliveryApi } from "../../services/deliveryApi";
+import { saveHandoffCode } from "../../services/handoffCodeStore";
 import { pricingApi } from "../../services/pricingApi";
 
 // ==================== HELPERS ====================
 
-const NOMINATIM = "https://nominatim.openstreetmap.org";
-const HEADERS = { "User-Agent": "Drovery/1.0", "Accept-Language": "en" };
-
-interface Coord {
-  latitude: number;
-  longitude: number;
-}
-
-async function geocodeAddress(address: string): Promise<Coord | null> {
-  try {
-    const res = await fetch(
-      `${NOMINATIM}/search?q=${encodeURIComponent(address)}&format=json&limit=1`,
-      { headers: HEADERS },
-    );
-    const data = await res.json();
-    if (data.length > 0) {
-      return {
-        latitude: parseFloat(data[0].lat),
-        longitude: parseFloat(data[0].lon),
-      };
-    }
-  } catch {}
-  return null;
-}
-
-function estimateDelivery(_dateStr: string, timeStr: string): string {
-  try {
-    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-    if (!match) return timeStr;
-    let h = parseInt(match[1]);
-    const m = parseInt(match[2]);
-    const period = match[3].toUpperCase();
-    if (period === "PM" && h !== 12) h += 12;
-    if (period === "AM" && h === 12) h = 0;
-    h += 2;
-    const newPeriod = h >= 12 ? "PM" : "AM";
-    const dH = h > 12 ? h - 12 : h === 0 ? 12 : h;
-    return `${String(dH).padStart(2, "0")}:${String(m).padStart(2, "0")} ${newPeriod}`;
-  } catch {
-    return timeStr;
-  }
-}
-
-function calcPrice(size: string, weight: string): number {
-  const base: Record<string, number> = {
-    Small: 5,
-    Medium: 8,
-    Large: 12,
-    XL: 18,
-  };
-  const kg = parseFloat(weight) || 0;
-  return Math.round((base[size] ?? 5) + kg * 3);
-}
-
-const PACKAGE_LABELS: Record<string, string> = {
-  food: "Food",
-  document: "Document",
-  fragile: "Fragile",
-  electronics: "Electronics",
-  clothing: "Clothing",
-  healthcare: "Healthcare",
-  other: "Other",
-};
-
-const PACKAGE_ACCENT: Record<string, string> = {
-  food: "#F97316",
-  document: "#3B82F6",
-  fragile: "#8B5CF6",
-  electronics: "#06B6D4",
-  clothing: "#EC4899",
-  healthcare: "#10B981",
-  other: "#64748B",
-};
+import {
+  geocodeAddress,
+  estimateDelivery,
+  calcPrice,
+  PACKAGE_LABELS,
+  PACKAGE_ACCENT,
+  type Coord,
+} from "./helpers";
 
 // ==================== MAIN SCREEN ====================
 
@@ -197,6 +133,17 @@ export function ConfirmationDeliveryScreen() {
         toLat: toCoord?.latitude,
         toLng: toCoord?.longitude,
       });
+      // Persist the one-time handoff code so the user can re-read it at drop-off
+      // (it's never returned again). Best-effort — never block the success nav.
+      // Guard the write: only a non-empty code is worth storing (and writing an
+      // empty string would mask the cache-miss path with a useless entry).
+      if (delivery.handoffCode) {
+        try {
+          await saveHandoffCode(delivery.id, delivery.handoffCode);
+        } catch {
+          // ignore — the code still rides the nav param below
+        }
+      }
       router.push({
         pathname: "/delivery-congratulations",
         params: {
@@ -204,9 +151,11 @@ export function ConfirmationDeliveryScreen() {
           orderId: delivery.trackingId,
           from: params.from,
           to: params.to,
+          receiver: params.receiver ?? "",
           pickupDate: params.pickupDate,
           estTime,
           price: String(delivery.estimatedPrice ?? price),
+          handoffCode: delivery.handoffCode,
         },
       });
     } catch (err) {

@@ -32,9 +32,11 @@ export function CongratulatoryScreen() {
     orderId: string;
     from: string;
     to: string;
+    receiver: string;
     pickupDate: string;
     estTime: string;
     price: string;
+    handoffCode: string;
   }>();
 
   // Pulsing ring animation around the success icon
@@ -138,6 +140,38 @@ export function CongratulatoryScreen() {
         entering={FadeInUp.delay(300).duration(500)}
         style={s.card}
       >
+        {/* Handoff code — shown once; the drone asks for it at drop-off */}
+        {params.handoffCode ? (
+          <View style={s.handoffBlock}>
+            <View style={s.handoffHeader}>
+              <MaterialIcons
+                name="vpn-key"
+                size={16}
+                color={colors.primary.DEFAULT}
+              />
+              <Text style={s.handoffLabel}>Handoff code</Text>
+            </View>
+            <Text selectable style={s.handoffCode}>
+              {params.handoffCode}
+            </Text>
+            <View style={s.handoffHintRow}>
+              <MaterialIcons
+                name="content-copy"
+                size={13}
+                color={colors.primary.DEFAULT}
+              />
+              <Text style={s.handoffHint}>Long-press the code to copy.</Text>
+            </View>
+            <Text style={s.handoffBody}>
+              Share this with {params.receiver || "your recipient"}. The drone
+              asks for it at drop-off to release your package.
+            </Text>
+            <Text style={s.handoffWarn}>
+              Keep it handy — we can&apos;t show this code again.
+            </Text>
+          </View>
+        ) : null}
+
         {/* Delivery Summary */}
         <Text style={s.sectionTitle}>Delivery Summary</Text>
 
@@ -360,6 +394,59 @@ const s = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
     marginBottom: spacing.lg,
+  },
+  // Handoff code block
+  handoffBlock: {
+    borderWidth: 1,
+    borderColor: colors.border.DEFAULT,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.xl,
+    backgroundColor: "#F0FDFA",
+  },
+  handoffHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  handoffLabel: {
+    fontSize: fontSize.xs,
+    fontWeight: "700",
+    color: colors.text.placeholder,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  handoffCode: {
+    fontSize: 30,
+    fontWeight: "800",
+    color: colors.text.primary,
+    letterSpacing: 8,
+    textAlign: "center",
+    marginVertical: spacing.sm,
+  },
+  handoffHintRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    marginBottom: spacing.sm,
+  },
+  handoffHint: {
+    fontSize: fontSize.xs,
+    fontWeight: "600",
+    color: colors.primary.DEFAULT,
+  },
+  handoffBody: {
+    fontSize: fontSize.sm,
+    color: colors.text.light,
+    lineHeight: 18,
+  },
+  handoffWarn: {
+    fontSize: fontSize.sm,
+    color: "#B45309",
+    fontWeight: "600",
+    marginTop: spacing.sm,
   },
   // Route (vertical)
   routeContainer: {
