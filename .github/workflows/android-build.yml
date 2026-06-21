@@ -1,0 +1,92 @@
+name: Android AAB (EAS)
+
+# Builds a Play-Store-ready Android App Bundle (.aab) on EAS (Expo's cloud builder) and uploads
+# it as a downloadable GitHub artifact. MANUAL by design — each run consumes an EAS build credit,
+# so you gate releases with "Run workflow" rather than building on every push.
+#
+# ── One-time setup ────────────────────────────────────────────────────────────────────────────
+#  1. Create a free Expo account → https://expo.dev
+#  2. Locally, once:  npm i -g eas-cli && eas login && eas init
+#       • `eas init` links the project and writes `extra.eas.projectId` into app.json — COMMIT that.
+#       • Then run `eas build -p android --profile production` once (interactively) so EAS GENERATES
+#         and stores your Android upload keystore (managed credentials — nothing secret in this repo).
+#         You can cancel once it says credentials are set up.
+#  3. Create an Expo access token: expo.dev → Account Settings → Access tokens → Create.
+#       Add it as a GitHub repo secret named  EXPO_TOKEN
+#       (Settings → Secrets and variables → Actions → New repository secret).
+#
+# ── Run it ────────────────────────────────────────────────────────────────────────────────────
+#  Actions → "Android AAB (EAS)" → Run workflow → choose a profile (production = .aab).
+#  When it finishes, download the artifact and upload it in the Google Play Console
+#  (Internal testing → Create new release). Build profiles live in eas.json.
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'EAS build profile (production = .aab for Play, preview = .apk for sideloading)'
+        type: choice
+        options:
+          - production
+          - preview
+        default: production
+
+# Never run two cloud builds at once (each costs a build credit).
+concurrency:
+  group: android-build
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Android (${{ inputs.profile }}) on EAS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build on EAS and capture the artifact URL
+        id: build
+        run: |
+          set -euo pipefail
+          PROFILE="${{ inputs.profile }}"
+          echo "Starting EAS build (profile: $PROFILE)…"
+          # `eas build` waits for the cloud build to finish. With --json the final build object is
+          # printed to stdout (progress/logs go to stderr), so we can parse it cleanly.
+          eas build --platform android --profile "$PROFILE" --non-interactive --json > build.json
+          URL="$(jq -r '.[0].artifacts.applicationArchiveUrl // .artifacts.applicationArchiveUrl // empty' build.json)"
+          if [ -z "$URL" ]; then
+            echo "::error::No applicationArchiveUrl in the EAS build output — dumping build.json:"
+            cat build.json
+            exit 1
+          fi
+          EXT="aab"; [ "$PROFILE" = "preview" ] && EXT="apk"
+          echo "Downloading artifact from: $URL"
+          curl -fL --retry 3 -o "drovery-mobile.$EXT" "$URL"
+          ls -lh "drovery-mobile.$EXT"
+          echo "ext=$EXT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the bundle as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: drovery-mobile-${{ inputs.profile }}
+          path: drovery-mobile.${{ steps.build.outputs.ext }}
+          if-no-files-found: error
+          retention-days: 30
