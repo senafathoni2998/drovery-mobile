@@ -81,6 +81,9 @@ artifact → upload it in the Play Console (Internal testing → new release). P
 `com.drovery.mobile`; the version name comes from `app.json` `version`, and `versionCode` is
 auto-incremented per production build (`appVersionSource: remote`, tracked by EAS).
 
+Auto-submitting builds straight to a Play track (`eas submit`) is deferred for now — the turnkey
+plan is in [`PLAY-AUTO-SUBMIT-TODO.md`](PLAY-AUTO-SUBMIT-TODO.md).
+
 > Heads-up: `app.json` still has the **Google Maps** key as `YOUR_GOOGLE_MAPS_API_KEY` — set a real
 > Android Maps SDK key there before a public release or the map screens won't render on device.
 
