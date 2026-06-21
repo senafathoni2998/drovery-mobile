@@ -58,6 +58,32 @@ npm test                 # jest + @testing-library/react-native
 npm run test:coverage
 ```
 
+## Building for Android (Play Store)
+
+Production Android App Bundles (`.aab`) are built on **EAS** (Expo's cloud builder) via the
+[`Android AAB (EAS)`](.github/workflows/android-build.yml) GitHub Action — it produces a Play-ready,
+signed bundle and uploads it as a downloadable artifact (manual trigger, so each release is gated).
+
+**One-time setup**
+
+1. Create a free [Expo account](https://expo.dev), then locally: `npm i -g eas-cli && eas login && eas init`.
+   `eas init` links the project (writes `extra.eas.projectId` into `app.json` — commit it), and a first
+   `eas build -p android --profile production` lets EAS generate & store your upload keystore (managed
+   credentials — **no secrets in the repo**).
+2. Create an Expo **access token** (expo.dev → Account Settings → Access tokens) and add it as the GitHub
+   repo secret **`EXPO_TOKEN`**.
+
+**Release**
+
+Actions → **Android AAB (EAS)** → *Run workflow* → `production` → download the `drovery-mobile-production`
+artifact → upload it in the Play Console (Internal testing → new release). Profiles live in
+[`eas.json`](eas.json) (`production` = `.aab`, `preview` = `.apk` for sideloading). App id is
+`com.drovery.mobile`; the version name comes from `app.json` `version`, and `versionCode` is
+auto-incremented per production build (`appVersionSource: remote`, tracked by EAS).
+
+> Heads-up: `app.json` still has the **Google Maps** key as `YOUR_GOOGLE_MAPS_API_KEY` — set a real
+> Android Maps SDK key there before a public release or the map screens won't render on device.
+
 ## Learn more
 
 - [Expo documentation](https://docs.expo.dev/) · [expo-router](https://docs.expo.dev/router/introduction) · [Environment variables in Expo](https://docs.expo.dev/guides/environment-variables/)
