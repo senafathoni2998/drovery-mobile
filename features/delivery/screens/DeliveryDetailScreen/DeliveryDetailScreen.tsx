@@ -27,6 +27,7 @@ import { deliveryApi } from "../../services/deliveryApi";
 import { useDelivery } from "../../hooks/useDelivery";
 import { clearHandoffCode } from "../../services/handoffCodeStore";
 import { HandoffConfirmCard } from "./components/HandoffConfirmCard";
+import { SenderHandoffCodeCard } from "./components/SenderHandoffCodeCard";
 import {
   STEPS,
   type Delivery,
@@ -368,6 +369,15 @@ export function DeliveryDetailScreen() {
             </View>
           </View>
         </View>
+
+        {/* Sender handoff — re-reveal + re-share the cached one-time code any time before
+            drop-off (self-hides if this device doesn't hold the code). */}
+        {!statusMeta(apiDelivery.status).terminal && (
+          <SenderHandoffCodeCard
+            deliveryId={apiDelivery.id}
+            receiver={apiDelivery.receiver}
+          />
+        )}
 
         {/* Recipient handoff — finalize the delivery with the 6-digit code */}
         {apiDelivery.status === "AWAITING_HANDOFF" && (
