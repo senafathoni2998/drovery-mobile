@@ -18,7 +18,7 @@
 // Your dev machine's LAN IP — used as the fallback when EXPO_PUBLIC_API_URL is unset.
 const LAN_IP = '192.168.1.7';
 
-const DEFAULT_API_URL = `http://${LAN_IP}:3000/api/v1`;
+const DEFAULT_API_URL = 'https://droverybackend.senafathoni.dev/api/v1';
 
 export const ENV = {
   // Set to 'mock' for local/demo mode, 'api' for backend integration
