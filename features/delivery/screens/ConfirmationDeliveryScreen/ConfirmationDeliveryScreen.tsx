@@ -18,6 +18,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { deliveryApi } from "../../services/deliveryApi";
 import { saveHandoffCode } from "../../services/handoffCodeStore";
 import { pricingApi } from "../../services/pricingApi";
+import { PromoCodeInput } from "@/features/promo/components/PromoCodeInput";
+import type { PromoPreview } from "@/features/promo/services/promoApi";
 
 // ==================== HELPERS ====================
 
@@ -64,6 +66,8 @@ export function ConfirmationDeliveryScreen() {
   const mapReadyRef = useRef(false);
 
   const [price, setPrice] = useState(calcPrice(params.packageSize ?? "", params.packageWeight ?? ""));
+  // An applied promo preview (advisory); the backend re-validates at create().
+  const [promo, setPromo] = useState<PromoPreview | null>(null);
 
   // Fetch price from API
   useEffect(() => {
@@ -132,6 +136,8 @@ export function ConfirmationDeliveryScreen() {
         fromLng: fromCoord?.longitude,
         toLat: toCoord?.latitude,
         toLng: toCoord?.longitude,
+        // Only send a code the preview accepted; the backend re-validates + applies it.
+        promoCode: promo?.valid && promo.code ? promo.code : undefined,
       });
       // Persist the one-time handoff code so the user can re-read it at drop-off
       // (it's never returned again). Best-effort — never block the success nav.
@@ -352,6 +358,15 @@ export function ConfirmationDeliveryScreen() {
             )}
           </View>
         </Animated.View>
+
+        {/* Promo code — previews a discount; the backend re-validates + applies at create() */}
+        <View style={{ paddingHorizontal: spacing.lg, marginBottom: spacing.lg }}>
+          <PromoCodeInput
+            orderTotal={price}
+            onApplied={setPromo}
+            onCleared={() => setPromo(null)}
+          />
+        </View>
       </ScrollView>
 
       {/* ── BOTTOM BAR ── */}
@@ -361,7 +376,9 @@ export function ConfirmationDeliveryScreen() {
       >
         <View style={s.priceBlock}>
           <Text style={s.priceLabel}>Est. Price</Text>
-          <Text style={s.priceValue}>${price}</Text>
+          <Text style={s.priceValue}>
+            ${promo?.valid && promo.finalTotal != null ? promo.finalTotal : price}
+          </Text>
         </View>
 
         <TouchableOpacity

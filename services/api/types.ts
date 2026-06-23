@@ -128,6 +128,11 @@ export interface CreateDeliveryDto {
   fromLng?: number;
   toLat?: number;
   toLng?: number;
+  // Optional promo code — the backend re-validates and applies the discount
+  // authoritatively at create() (the client preview via /promo/validate is advisory).
+  promoCode?: string;
+  // Apply the user's wallet credit balance toward the charge.
+  useCredits?: boolean;
 }
 
 export interface DeliveryQueryParams {
