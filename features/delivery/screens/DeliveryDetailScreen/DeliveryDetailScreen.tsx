@@ -27,6 +27,7 @@ import { deliveryApi } from "../../services/deliveryApi";
 import { useDelivery } from "../../hooks/useDelivery";
 import { clearHandoffCode } from "../../services/handoffCodeStore";
 import { HandoffConfirmCard } from "./components/HandoffConfirmCard";
+import { RateDeliverySheet } from "../../components/RateDeliverySheet";
 import {
   STEPS,
   type Delivery,
@@ -428,6 +429,11 @@ export function DeliveryDetailScreen() {
               <Text style={styles.proofPhotoButtonText}>Take delivery photo</Text>
             </TouchableOpacity>
           </View>
+        )}
+
+        {/* Rate the delivery — available once it has been delivered */}
+        {apiDelivery.status === "DELIVERED" && (
+          <RateDeliverySheet deliveryId={apiDelivery.id} />
         )}
 
         {/* Footer Actions */}
