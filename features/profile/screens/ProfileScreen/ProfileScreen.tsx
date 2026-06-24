@@ -37,8 +37,16 @@ export function ProfileScreen() {
       ],
     },
     {
+      title: "Deliveries",
+      items: [
+        { icon: "favorite", iconType: "Material", title: "Favorites", color: "#EC4899", onPress: () => router.push("/favorites") },
+        { icon: "repeat", iconType: "Material", title: "Recurring Deliveries", color: "#8B5CF6", onPress: () => router.push("/recurring-deliveries") },
+      ],
+    },
+    {
       title: "Support",
       items: [
+        { icon: "support-agent", iconType: "Material", title: "My Tickets", color: "#0EA5E9", onPress: () => router.push("/support-tickets") },
         { icon: "help-circle", iconType: "Ion", title: "Help & Support", color: "#8B5CF6", onPress: () => router.push("/help-support") },
         { icon: "description", iconType: "Material", title: "Terms & Privacy", color: colors.text.muted, onPress: () => router.push("/terms-privacy") },
       ],
