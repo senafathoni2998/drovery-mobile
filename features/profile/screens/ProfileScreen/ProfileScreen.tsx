@@ -27,6 +27,7 @@ export function ProfileScreen() {
         { icon: "person", iconType: "Material", title: "Edit Profile", color: colors.primary.DEFAULT, onPress: () => router.push("/edit-profile") },
         { icon: "payments", iconType: "Material", title: "Payment Methods", color: colors.success, onPress: () => router.push("/payment-methods") },
         { icon: "place", iconType: "Material", title: "Saved Addresses", color: "#3B82F6", onPress: () => router.push("/addresses") },
+        { icon: "notifications", iconType: "Material", title: "Notification Settings", color: "#6366F1", onPress: () => router.push("/notification-settings") },
       ],
     },
     {
