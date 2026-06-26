@@ -4,57 +4,43 @@ import {
   calcPrice,
   PACKAGE_LABELS,
   PACKAGE_ACCENT,
-  NOMINATIM,
-  HEADERS,
 } from "@/features/delivery/screens/ConfirmationDeliveryScreen/helpers";
+import { geoApi } from "@/features/delivery/services/geoApi";
 
-// ── geocodeAddress ────────────────────────────────────────────────────────────
+jest.mock("@/features/delivery/services/geoApi", () => ({
+  geoApi: { geocode: jest.fn(), reverse: jest.fn() },
+}));
+
+// ── geocodeAddress (now via the backend /geo, not Nominatim directly) ───────────
 
 describe("geocodeAddress", () => {
-  beforeEach(() => {
-    global.fetch = jest.fn();
-  });
-
   afterEach(() => {
     jest.resetAllMocks();
   });
 
-  it("returns coordinates when API returns a result", async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      json: async () => [{ lat: "-6.2088", lon: "106.8456" }],
+  it("returns coordinates from the backend geocode", async () => {
+    (geoApi.geocode as jest.Mock).mockResolvedValueOnce({
+      latitude: -6.2088,
+      longitude: 106.8456,
     });
 
     const result = await geocodeAddress("Jakarta");
 
     expect(result).toEqual({ latitude: -6.2088, longitude: 106.8456 });
-    expect(global.fetch).toHaveBeenCalledWith(
-      `${NOMINATIM}/search?q=Jakarta&format=json&limit=1`,
-      { headers: HEADERS },
-    );
+    expect(geoApi.geocode).toHaveBeenCalledWith("Jakarta");
   });
 
-  it("encodes special characters in address", async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      json: async () => [{ lat: "1.0", lon: "2.0" }],
-    });
-
-    await geocodeAddress("Jl. Ahmad Yani & Sudirman");
-
-    const calledUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
-    expect(calledUrl).toContain(encodeURIComponent("Jl. Ahmad Yani & Sudirman"));
-  });
-
-  it("returns null when API returns empty array", async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      json: async () => [],
-    });
+  it("returns null when the address can't be resolved", async () => {
+    (geoApi.geocode as jest.Mock).mockResolvedValueOnce(null);
 
     const result = await geocodeAddress("NonexistentPlace12345");
     expect(result).toBeNull();
   });
 
-  it("returns null on network error", async () => {
-    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error("Network error"));
+  it("returns null on error (best-effort, never throws)", async () => {
+    (geoApi.geocode as jest.Mock).mockRejectedValueOnce(
+      new Error("Network error"),
+    );
 
     const result = await geocodeAddress("Jakarta");
     expect(result).toBeNull();

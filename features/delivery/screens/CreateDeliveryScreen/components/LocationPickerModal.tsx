@@ -17,6 +17,7 @@ import * as Location from "expo-location";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { borderRadius, colors, fontSize, spacing } from "@/styles/common";
+import { geoApi } from "@/features/delivery/services/geoApi";
 
 const NOMINATIM = "https://nominatim.openstreetmap.org";
 const HEADERS = {
@@ -81,12 +82,9 @@ export function LocationPickerModal({ visible, title, onConfirm, onCancel }: Pro
   const reverseGeocode = async (lat: number, lng: number) => {
     setReversing(true);
     try {
-      const res = await fetch(
-        `${NOMINATIM}/reverse?lat=${lat}&lon=${lng}&format=json`,
-        { headers: HEADERS },
-      );
-      const data = await res.json();
-      const found: string = data.display_name ?? "";
+      // Backend /geo/reverse (keyed/rate-managed) instead of Nominatim directly. The
+      // multi-result autocomplete (searchAddress) stays on Nominatim — /geo has no list search.
+      const found = (await geoApi.reverse(lat, lng)) ?? "";
       setAddress(found);
       setSearchText(found);
     } catch {
