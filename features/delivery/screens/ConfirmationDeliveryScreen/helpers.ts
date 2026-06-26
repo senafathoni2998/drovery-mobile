@@ -1,28 +1,20 @@
 // ==================== HELPERS ====================
 
-export const NOMINATIM = "https://nominatim.openstreetmap.org";
-export const HEADERS = { "User-Agent": "Drovery/1.0", "Accept-Language": "en" };
+import { geoApi } from "@/features/delivery/services/geoApi";
 
 export interface Coord {
   latitude: number;
   longitude: number;
 }
 
+// Single-result forward geocode via the backend's keyed/rate-managed /geo (the single source
+// of truth) instead of calling Nominatim directly. Best-effort — never throws.
 export async function geocodeAddress(address: string): Promise<Coord | null> {
   try {
-    const res = await fetch(
-      `${NOMINATIM}/search?q=${encodeURIComponent(address)}&format=json&limit=1`,
-      { headers: HEADERS },
-    );
-    const data = await res.json();
-    if (data.length > 0) {
-      return {
-        latitude: parseFloat(data[0].lat),
-        longitude: parseFloat(data[0].lon),
-      };
-    }
-  } catch {}
-  return null;
+    return await geoApi.geocode(address);
+  } catch {
+    return null;
+  }
 }
 
 export function estimateDelivery(_dateStr: string, timeStr: string): string {
