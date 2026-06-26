@@ -27,6 +27,7 @@ import { deliveryApi } from "../../services/deliveryApi";
 import { useDelivery } from "../../hooks/useDelivery";
 import { clearHandoffCode } from "../../services/handoffCodeStore";
 import { HandoffConfirmCard } from "./components/HandoffConfirmCard";
+import { RateDeliverySheet } from "../../components/RateDeliverySheet";
 import {
   STEPS,
   type Delivery,
@@ -53,6 +54,7 @@ export function DeliveryDetailScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const { data: apiDelivery, loading, error, refetch } = useDelivery(params.id);
   const [canceling, setCanceling] = useState(false);
+  const [reordering, setReordering] = useState(false);
 
   // Once the delivery settles, drop the cached handoff code (spent or moot) so a
   // stale secret doesn't linger on the device.
@@ -93,6 +95,25 @@ export function DeliveryDetailScreen() {
         },
       ],
     );
+  };
+
+  const handleReorder = async () => {
+    if (!apiDelivery) return;
+    try {
+      setReordering(true);
+      const created = await deliveryApi.reorder(apiDelivery.id);
+      router.replace({
+        pathname: "/delivery-detail",
+        params: { id: created.id },
+      });
+    } catch (err) {
+      Alert.alert(
+        "Couldn't reorder",
+        err instanceof Error ? err.message : "Please try again.",
+      );
+    } finally {
+      setReordering(false);
+    }
   };
 
   const delivery: Delivery = apiDelivery
@@ -430,6 +451,11 @@ export function DeliveryDetailScreen() {
           </View>
         )}
 
+        {/* Rate the delivery — available once it has been delivered */}
+        {apiDelivery.status === "DELIVERED" && (
+          <RateDeliverySheet deliveryId={apiDelivery.id} />
+        )}
+
         {/* Footer Actions */}
         <FooterActions
           onTrackMap={handleTrackMap}
@@ -450,6 +476,29 @@ export function DeliveryDetailScreen() {
               <>
                 <MaterialIcons name="cancel" size={18} color="#EF4444" />
                 <Text style={styles.cancelButtonText}>Cancel Delivery</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+
+        {/* Order again — clone a settled delivery into a fresh one */}
+        {meta?.terminal && (
+          <TouchableOpacity
+            style={styles.reorderButton}
+            onPress={handleReorder}
+            disabled={reordering}
+            activeOpacity={0.85}
+          >
+            {reordering ? (
+              <ActivityIndicator size="small" color={colors.primary.DEFAULT} />
+            ) : (
+              <>
+                <MaterialIcons
+                  name="replay"
+                  size={18}
+                  color={colors.primary.DEFAULT}
+                />
+                <Text style={styles.reorderButtonText}>Order again</Text>
               </>
             )}
           </TouchableOpacity>
@@ -650,6 +699,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#EF4444",
+  },
+  reorderButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: "#CCFBF1",
+    backgroundColor: "#F0FDFA",
+  },
+  reorderButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.primary.DEFAULT,
   },
   proofCard: {
     backgroundColor: colors.white,

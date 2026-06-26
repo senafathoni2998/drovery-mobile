@@ -1,9 +1,29 @@
 import { api } from '@/services/api/apiClient';
 import type { ApiNotification } from '@/services/api/types';
 
+export interface NotificationPreferences {
+  pushEnabled: boolean;
+  deliveryUpdates: boolean;
+  promotions: boolean;
+  // Quiet-hours window (hour-of-day 0–23, [start, end)); null = off.
+  quietHoursStart: number | null;
+  quietHoursEnd: number | null;
+}
+
 export const notificationApi = {
   getAll() {
     return api.get<ApiNotification[]>('/notifications');
+  },
+
+  getPreferences() {
+    return api.get<NotificationPreferences>('/notifications/preferences');
+  },
+
+  updatePreferences(body: Partial<NotificationPreferences>) {
+    return api.patch<NotificationPreferences>(
+      '/notifications/preferences',
+      body,
+    );
   },
 
   getUnreadCount() {

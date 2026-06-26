@@ -53,4 +53,9 @@ export const deliveryApi = {
   cancel(id: string) {
     return api.post<ApiDelivery>(`/deliveries/${id}/cancel`);
   },
+
+  // Clone a past delivery into a new one. Both pickup fields omitted → immediate (now).
+  reorder(id: string, body?: { pickupDate?: string; pickupTime?: string }) {
+    return api.post<ApiCreatedDelivery>(`/deliveries/${id}/reorder`, body ?? {});
+  },
 };

@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { borderRadius, colors, spacing } from "@/styles/common";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import QRCode from "react-native-qrcode-svg";
+import { colors, spacing } from "@/styles/common";
+import { workflowApi } from "@/features/delivery/services/workflowApi";
 import type { QRDisplayStepData } from "../../../workflow/types";
 
 interface Props {
@@ -10,11 +12,32 @@ interface Props {
 }
 
 export function QRDisplayStep({ step, deliveryId }: Props) {
+  // Fetch the backend-signed handoff payload and render it as a real, scannable QR.
+  const [payload, setPayload] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (!deliveryId) return;
+    let active = true;
+    setPayload(null);
+    setFailed(false);
+    workflowApi
+      .generateQR(deliveryId)
+      .then((res) => {
+        if (active) setPayload(res.payload);
+      })
+      .catch(() => {
+        if (active) setFailed(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [deliveryId]);
+
   return (
     <View style={styles.container}>
       <Text style={styles.instruction}>{step.instruction}</Text>
 
-      {/* QR Code placeholder — replace with react-native-qrcode-svg when needed */}
       <View style={styles.qrWrapper}>
         <View style={styles.qrBox}>
           {/* Corner marks */}
@@ -24,7 +47,13 @@ export function QRDisplayStep({ step, deliveryId }: Props) {
           <View style={[styles.corner, styles.cornerBR]} />
 
           <View style={styles.qrContent}>
-            <Ionicons name="qr-code" size={120} color={colors.text.primary} />
+            {payload ? (
+              <QRCode value={payload} size={170} />
+            ) : failed ? (
+              <Ionicons name="qr-code" size={120} color={colors.text.primary} />
+            ) : (
+              <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
+            )}
             {deliveryId && (
               <Text style={styles.deliveryId}>{deliveryId}</Text>
             )}
