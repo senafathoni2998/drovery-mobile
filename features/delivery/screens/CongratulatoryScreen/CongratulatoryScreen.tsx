@@ -4,10 +4,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import {
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from "react-native";
 import Animated, {
@@ -25,7 +25,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export function CongratulatoryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { height: screenHeight } = useWindowDimensions();
 
   const params = useLocalSearchParams<{
     deliveryId: string;
@@ -83,7 +82,11 @@ export function CongratulatoryScreen() {
   };
 
   return (
-    <View style={s.root}>
+    <ScrollView
+      style={s.root}
+      contentContainerStyle={s.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       {/* ── GRADIENT TOP ── */}
       <LinearGradient
         colors={["#0D9488", "#14B8A6", "#06B6D4"]}
@@ -267,7 +270,7 @@ export function CongratulatoryScreen() {
 
       {/* bottom safe area fill */}
       <View style={[s.bottomFill, { height: insets.bottom }]} />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -275,6 +278,12 @@ const s = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.white,
+  },
+  // ScrollView content: flexGrow keeps the card filling the screen when content is
+  // short, while letting it scroll when content (hero + handoff code + summary +
+  // buttons) exceeds the viewport on smaller devices.
+  scrollContent: {
+    flexGrow: 1,
   },
   // Hero gradient
   hero: {
@@ -373,7 +382,7 @@ const s = StyleSheet.create({
   },
   // Card
   card: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: colors.white,
     borderTopLeftRadius: borderRadius.xxl,
     borderTopRightRadius: borderRadius.xxl,
