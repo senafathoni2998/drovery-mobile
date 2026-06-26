@@ -58,7 +58,13 @@
           "color": "#0D9488"
         }
       ],
-      "@stripe/stripe-react-native"
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.drovery.mobile",
+          "enableGooglePay": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
